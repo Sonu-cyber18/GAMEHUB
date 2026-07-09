@@ -1,0 +1,793 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Retro Chess - Claymorphic Edition</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --text-muted: #64748b;
+
+            /* Modern Retro Palette */
+            --terracotta-color: #b07d62;
+            --cream-color: #ede0d4;
+            --dark-wood: #7f5539;
+            --accent-green: #7d8f69;
+            --clay-orange: #d48c70;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Navbar Style */
+        .navbar {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 1.1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .navbar-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar .logo i {
+            color: var(--clay-orange);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.25s ease;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        /* Main Game Wrapper - Claymorphic */
+        .chess-container {
+            margin: 1.5rem auto;
+            max-width: 1100px;
+            width: calc(100vw - 3rem);
+            min-height: calc(100vh - 120px);
+            padding: 2.25rem;
+            background: #111827;
+            border-radius: 32px;
+            box-shadow: 
+                16px 16px 40px rgba(0, 0, 0, 0.55), 
+                inset -10px -10px 20px rgba(0, 0, 0, 0.4), 
+                inset 10px 10px 20px rgba(255, 255, 255, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1rem;
+        }
+
+        .game-header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Play Layout Arena */
+        .play-arena {
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 2.5rem;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 868px) {
+            .play-arena {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Chess Board Frame - Deep Clay Inset */
+        .board-container {
+            width: 100%;
+            max-width: min(85vw, 55vh);
+            aspect-ratio: 1/1;
+            margin: 0 auto;
+            background: var(--dark-wood);
+            border-radius: 32px;
+            padding: 12px;
+            box-shadow: 
+                16px 16px 36px rgba(0, 0, 0, 0.5), 
+                inset -8px -8px 16px rgba(0, 0, 0, 0.6), 
+                inset 8px 8px 16px rgba(255, 255, 255, 0.08);
+            position: relative;
+        }
+
+        #chess-board {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 20px;
+            overflow: hidden;
+            border: none;
+            box-shadow: inset 4px 4px 8px rgba(0,0,0,0.5);
+        }
+
+        /* Overwrite chessboard.js square colors for Retro-Claymorphic look */
+        .white-1e1d7 {
+            background-color: var(--cream-color) !important;
+            box-shadow: 
+                inset -2.5px -2.5px 5px rgba(0, 0, 0, 0.12), 
+                inset 2.5px 2.5px 5px rgba(255, 255, 255, 0.45) !important;
+        }
+
+        .black-3c85d {
+            background-color: var(--terracotta-color) !important;
+            box-shadow: 
+                inset -2.5px -2.5px 5px rgba(0, 0, 0, 0.22), 
+                inset 2.5px 2.5px 5px rgba(255, 255, 255, 0.08) !important;
+        }
+
+        /* Elevating Chess Pieces in 3D perspective space */
+        .piece-417db {
+            filter: drop-shadow(0px 5px 6px rgba(0, 0, 0, 0.45));
+            transition: transform 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28) !important;
+            cursor: grab;
+        }
+
+        .piece-417db:active {
+            cursor: grabbing;
+        }
+
+        .piece-417db:hover {
+            transform: scale(1.15) translateY(-4px);
+            filter: drop-shadow(0px 10px 12px rgba(0, 0, 0, 0.6));
+        }
+
+        /* Side Container Controls & Stats */
+        .side-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        /* Stats boxes - Claymorphic */
+        .chess-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .stat-box {
+            background: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: 24px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 
+                6px 6px 16px rgba(0, 0, 0, 0.35),
+                inset -5px -5px 10px rgba(0, 0, 0, 0.4),
+                inset 5px 5px 10px rgba(255, 255, 255, 0.03);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            color: var(--clay-orange);
+            font-weight: 800;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Controls Area */
+        .controls-area {
+            background: var(--card-bg);
+            border-radius: 28px;
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            box-shadow: 
+                8px 8px 20px rgba(0, 0, 0, 0.45),
+                inset -6px -6px 12px rgba(0, 0, 0, 0.45),
+                inset 6px 6px 12px rgba(255, 255, 255, 0.03);
+        }
+
+        .chess-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .controls-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Custom inputs styling */
+        .select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        /* Buttons & Select fields - Claymorphic */
+        .chess-controls button, .chess-controls select {
+            width: 100%;
+            background: var(--terracotta-color);
+            color: #ffffff;
+            border: none;
+            padding: 0.85rem 1.25rem;
+            border-radius: 16px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.92rem;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: all 0.25s ease;
+            box-shadow: 
+                6px 6px 15px rgba(0,0,0,0.4),
+                inset -4px -4px 8px rgba(0,0,0,0.5),
+                inset 4px 4px 8px rgba(255,255,255,0.15);
+        }
+
+        .chess-controls button:hover, .chess-controls select:hover {
+            background: var(--clay-orange);
+            box-shadow: 
+                8px 8px 18px rgba(0,0,0,0.45),
+                inset -4px -4px 8px rgba(0,0,0,0.4),
+                inset 4px 4px 8px rgba(255,255,255,0.2);
+        }
+
+        .chess-controls button:active {
+            transform: translateY(1px);
+            box-shadow: 
+                2px 2px 6px rgba(0,0,0,0.5),
+                inset 4px 4px 8px rgba(0,0,0,0.6);
+        }
+
+        .chess-controls select {
+            appearance: none;
+            padding-right: 32px;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .btn-green {
+            background: var(--accent-green) !important;
+        }
+        .btn-green:hover {
+            background: #8fa07b !important;
+        }
+
+        /* Message scrolling terminal */
+        .message-box {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 18px;
+            padding: 1.1rem;
+            height: 90px;
+            overflow-y: auto;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.65);
+        }
+
+        .message-box p {
+            margin: 0;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .message-box p.highlight-msg {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(11, 15, 25, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 2.5rem;
+            border-radius: 28px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 
+                20px 20px 50px rgba(0, 0, 0, 0.65), 
+                inset -8px -8px 16px rgba(0, 0, 0, 0.45), 
+                inset 8px 8px 16px rgba(255, 255, 255, 0.05);
+        }
+
+        .close-modal {
+            float: right;
+            cursor: pointer;
+            font-size: 1.75rem;
+            color: var(--text-muted);
+            transition: color 0.25s ease;
+        }
+
+        .close-modal:hover {
+            color: #ffffff;
+        }
+
+        #high-scores-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        #high-scores-table th, #high-scores-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
+        }
+
+        #high-scores-table th {
+            color: var(--clay-orange);
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url 'home' %}" class="logo"><i class="fa-solid fa-gamepad"></i> GameHub</a>
+            <div class="nav-links">
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'profile' %}">Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="chess-container">
+        <div class="game-header">
+            <h1>Modern Retro Chess</h1>
+            <div class="active-turn-pill" id="turn-display-pill">
+                <i class="fa-solid fa-play"></i> Turn: <span id="current-turn-name">White</span>
+            </div>
+        </div>
+
+        <div class="play-arena">
+            <div class="board-container">
+                <div id="chess-board"></div>
+            </div>
+
+            <div class="side-container">
+                <div class="chess-stats">
+                    <div class="stat-box">
+                        <div class="stat-label">Difficulty</div>
+                        <div class="stat-value" id="current-level">Easy</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Won Games</div>
+                        <div class="stat-value" id="games-won">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Top Score</div>
+                        <div class="stat-value" id="high-score">0</div>
+                    </div>
+                </div>
+
+                <div class="controls-area">
+                    <div class="chess-controls">
+                        <div class="controls-row">
+                            <button id="new-game" class="btn-green">New Game</button>
+                            <button id="flip-board">Flip Board</button>
+                        </div>
+                        <div class="controls-row">
+                            <div class="select-wrapper">
+                                <select id="difficulty">
+                                    <option value="easy">Easy (Random)</option>
+                                    <option value="medium">Medium (Lvl 2)</option>
+                                    <option value="hard">Hard (Lvl 3)</option>
+                                </select>
+                            </div>
+                            <button id="view-scores-btn">Leaderboard</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-box" id="message-box">
+                    <p class="highlight-msg">Match Initialized. Make your opening move!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- High Scores Modal -->
+    <div class="modal" id="scores-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 style="color: var(--clay-orange); margin-top: 0;"><i class="fa-solid fa-trophy"></i> Chess Leaderboard</h2>
+            <table id="high-scores-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Player</th>
+                        <th>Score</th>
+                        <th>Level</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="scores-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+    <script>
+        const gameState = {
+            game: null,
+            board: null,
+            gameOver: false,
+            difficulty: 'easy',
+            scores: JSON.parse(localStorage.getItem('chessHighScores')) || [],
+            gamesWon: parseInt(localStorage.getItem('chessGamesWon')) || 0,
+            highScore: parseInt(localStorage.getItem('chessHighScore')) || 0
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeGame();
+            setupEventListeners();
+            updateStatsDisplay();
+        });
+
+        function initializeGame() {
+            gameState.game = new Chess();
+            gameState.board = Chessboard('chess-board', {
+                position: 'start',
+                draggable: true,
+                onDragStart: onDragStart,
+                onDrop: onDrop,
+                onSnapEnd: onSnapEnd,
+                pieceTheme: '/static/img/chesspieces/wikipedia/{piece}.png',
+                orientation: 'white'
+            });
+            resizeBoard();
+            gameState.difficulty = $('#difficulty').val();
+        }
+
+        function resizeBoard() {
+            gameState.board.resize();
+            gameState.board.position(gameState.game.fen());
+        }
+
+        $(window).resize(resizeBoard);
+
+        function setupEventListeners() {
+            $('#new-game').click(startNewGame);
+            $('#flip-board').click(() => gameState.board.flip());
+            $('#difficulty').change(function () {
+                gameState.difficulty = $(this).val();
+                $('#current-level').text($(this).find('option:selected').text());
+                startNewGame();
+            });
+
+            $('#view-scores-btn').click(showHighScores);
+            $('.close-modal').click(hideHighScores);
+        }
+
+        function startNewGame() {
+            gameState.game.reset();
+            gameState.board.position(gameState.game.fen());
+            gameState.gameOver = false;
+            $('#turn-display-pill').css('border-color', 'rgba(255,255,255,0.08)');
+            $('#current-turn-name').text('White').style = '';
+            addMessage('New match started. White to move.');
+        }
+
+        function onDragStart(source, piece, position, orientation) {
+            if (gameState.gameOver || gameState.game.game_over()) return false;
+            if ((gameState.game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+                (gameState.game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+                return false;
+            }
+            return true;
+        }
+
+        function onDrop(source, target) {
+            const move = gameState.game.move({
+                from: source,
+                to: target,
+                promotion: 'q'
+            });
+
+            if (move === null) {
+                addMessage('⚠️ Invalid move! Try again.');
+                return 'snapback';
+            }
+
+            gameState.board.position(gameState.game.fen());
+            addMessage(`White moved: ${move.san}`);
+
+            if (gameState.game.in_checkmate()) {
+                handleWin();
+            } else if (gameState.game.in_draw()) {
+                addMessage('Draw match declared!');
+                gameState.gameOver = true;
+            } else if (!gameState.gameOver && gameState.game.turn() === 'b') {
+                $('#current-turn-name').text('Black');
+                setTimeout(makeAIMove, 400);
+            }
+        }
+
+        function onSnapEnd() {
+            gameState.board.position(gameState.game.fen());
+        }
+
+        function makeAIMove() {
+            if (gameState.gameOver || gameState.game.game_over()) return;
+
+            const moves = gameState.game.moves();
+            if (moves.length === 0) return;
+
+            let move;
+            const depth = getAIDepth();
+
+            if (depth > 0) {
+                move = findBestMove(gameState.game, depth);
+            } else {
+                move = moves[Math.floor(Math.random() * moves.length)];
+            }
+
+            const moveObj = gameState.game.move(move);
+            gameState.board.position(gameState.game.fen());
+            addMessage(`Black (AI) moved: ${moveObj.san}`);
+            $('#current-turn-name').text('White');
+
+            if (gameState.game.in_checkmate()) {
+                addMessage('❌ AI wins! Checkmate.');
+                gameState.gameOver = true;
+            } else if (gameState.game.in_draw()) {
+                addMessage('Draw match declared!');
+                gameState.gameOver = true;
+            }
+        }
+
+        function getAIDepth() {
+            return gameState.difficulty === 'medium' ? 2 : gameState.difficulty === 'hard' ? 3 : 0;
+        }
+
+        function findBestMove(game, depth) {
+            const moves = game.moves();
+            let bestMove = null;
+            let bestValue = -Infinity;
+
+            for (const move of moves) {
+                game.move(move);
+                const value = minimax(game, depth - 1, -Infinity, Infinity, false);
+                game.undo();
+                if (value > bestValue) {
+                    bestValue = value;
+                    bestMove = move;
+                }
+            }
+            return bestMove || moves[Math.floor(Math.random() * moves.length)];
+        }
+
+        function minimax(game, depth, alpha, beta, isMaximizing) {
+            if (depth === 0 || game.game_over()) {
+                return evaluateBoard(game);
+            }
+
+            const moves = game.moves();
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (const move of moves) {
+                    game.move(move);
+                    maxEval = Math.max(maxEval, minimax(game, depth - 1, alpha, beta, false));
+                    game.undo();
+                    alpha = Math.max(alpha, maxEval);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (const move of moves) {
+                    game.move(move);
+                    minEval = Math.min(minEval, minimax(game, depth - 1, alpha, beta, true));
+                    game.undo();
+                    beta = Math.min(beta, minEval);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        function evaluateBoard(game) {
+            if (game.in_checkmate()) {
+                return game.turn() === 'w' ? -1000 : 1000;
+            }
+            if (game.in_draw()) return 0;
+
+            const values = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+            let score = 0;
+
+            const board = game.board();
+            for (const row of board) {
+                for (const piece of row) {
+                    if (piece) {
+                        const value = values[piece.type];
+                        score += piece.color === 'w' ? value : -value;
+                    }
+                }
+            }
+            return score;
+        }
+
+        function handleWin() {
+            gameState.gameOver = true;
+            gameState.gamesWon++;
+            const score = calculateScore();
+            if (score > gameState.highScore) gameState.highScore = score;
+            addHighScore(score);
+            updateStorage();
+            updateStatsDisplay();
+            addMessage(`🎉 WINNER! Checkmate delivered. Score: ${score}`);
+        }
+
+        function calculateScore() {
+            const base = 100;
+            const multiplier = { easy: 1, medium: 2, hard: 3 };
+            return base * multiplier[gameState.difficulty];
+        }
+
+        function addHighScore(score) {
+            const newScore = {
+                player: '{{ request.user.username|default:"Guest" }}',
+                score: score,
+                level: gameState.difficulty,
+                date: new Date().toLocaleDateString()
+            };
+            gameState.scores.push(newScore);
+            gameState.scores.sort((a, b) => b.score - a.score);
+            gameState.scores = gameState.scores.slice(0, 10);
+        }
+
+        function updateStorage() {
+            localStorage.setItem('chessHighScores', JSON.stringify(gameState.scores));
+            localStorage.setItem('chessGamesWon', gameState.gamesWon.toString());
+            localStorage.setItem('chessHighScore', gameState.highScore.toString());
+        }
+
+        // Display updates
+        function updateStatsDisplay() {
+            $('#games-won').text(gameState.gamesWon);
+            $('#high-score').text(gameState.highScore);
+            
+            let diffLabel = 'Easy';
+            if (gameState.difficulty === 'medium') diffLabel = 'Medium';
+            else if (gameState.difficulty === 'hard') diffLabel = 'Hard';
+            $('#current-level').text(diffLabel);
+        }
+
+        function showHighScores() {
+            const body = $('#scores-body');
+            body.empty();
+            gameState.scores.forEach((s, i) => {
+                body.append(`
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${s.player}</td>
+                        <td>${s.score}</td>
+                        <td>${s.level.charAt(0).toUpperCase() + s.level.slice(1)}</td>
+                        <td>${s.date}</td>
+                    </tr>
+                `);
+            });
+            $('#scores-modal').css('display', 'flex');
+        }
+
+        function hideHighScores() {
+            $('#scores-modal').css('display', 'none');
+        }
+
+        function addMessage(text) {
+            const box = document.getElementById('message-box');
+            const p = document.createElement('p');
+            p.textContent = text;
+            
+            if (text.includes('⚠️') || text.includes('❌') || text.includes('🎉')) {
+                p.className = 'highlight-msg';
+            }
+            
+            box.insertBefore(p, box.firstChild);
+            if (box.children.length > 6) {
+                box.removeChild(box.lastChild);
+            }
+        }
+
+        startNewGame();
+    </script>
+</body>
+</html>

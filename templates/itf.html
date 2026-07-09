@@ -1,0 +1,3390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Indian Theft Auto (ITF) | 3D Open World</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0b0b18;
+            font-family: 'Outfit', sans-serif;
+            color: #fff;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Loading Screen */
+        #loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #151525 0%, #080810 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loader-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 3rem;
+            letter-spacing: 4px;
+            background: linear-gradient(45deg, #ff4500, #ff8c00, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 69, 0, 0.4);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 140, 0, 0.1);
+            border-top: 4px solid #ff8c00;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            font-size: 1rem;
+            color: #aaa;
+            letter-spacing: 1px;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        /* Main Menu Overlay */
+        #menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(8, 8, 16, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.3s ease;
+        }
+
+        .menu-container {
+            width: 90%;
+            max-width: 500px;
+            background: rgba(20, 20, 35, 0.7);
+            border: 2px solid rgba(255, 140, 0, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 140, 0, 0.05);
+            backdrop-filter: blur(10px);
+        }
+
+        .game-logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(to right, #ff4500, #ff8c00, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            filter: drop-shadow(0 2px 10px rgba(255, 69, 0, 0.3));
+        }
+
+        .game-subtitle {
+            font-size: 0.9rem;
+            color: #ffd700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .menu-btn {
+            background: linear-gradient(90deg, rgba(255, 69, 0, 0.8), rgba(255, 140, 0, 0.8));
+            color: #fff;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 69, 0, 0.5);
+            background: linear-gradient(90deg, #ff4500, #ff8c00);
+        }
+
+        .menu-btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: none;
+        }
+
+        .menu-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 140, 0, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.1);
+        }
+
+        .controls-info {
+            font-size: 0.85rem;
+            color: #aaa;
+            line-height: 1.5;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .controls-info h4 {
+            color: #ff8c00;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 5px 15px;
+        }
+
+        .control-key {
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        /* HUD Interface */
+        #hud-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Let clicks pass through to 3D canvas */
+            z-index: 10;
+            display: none; /* Shown during game */
+        }
+
+        #hud-container * {
+            pointer-events: auto; /* Re-enable events for buttons */
+        }
+
+        /* Top Right: Status (Health, Armor, Money, Stars) */
+        .hud-top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .hud-stat-bar-container {
+            width: 180px;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .hud-stat-bar-fill {
+            height: 100%;
+            width: 100%;
+            transition: width 0.2s ease-out;
+        }
+
+        .bar-health {
+            background: linear-gradient(90deg, #d32f2f, #f44336);
+        }
+
+        .bar-armor {
+            background: linear-gradient(90deg, #1976d2, #2196f3);
+        }
+
+        .bar-label {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-shadow: 1px 1px 2px #000;
+            letter-spacing: 0.5px;
+        }
+
+        .hud-money {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #4caf50;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            letter-spacing: 1px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .hud-wanted-stars {
+            display: flex;
+            gap: 4px;
+        }
+
+        .wanted-star {
+            font-size: 1.4rem;
+            color: rgba(255, 255, 255, 0.15);
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .wanted-star.active {
+            color: #ffd700;
+            text-shadow: 0 0 10px #ff8c00;
+            animation: pulse-star 0.5s ease;
+        }
+
+        @keyframes pulse-star {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        /* Top Left: Active Weapon and Ammo */
+        .hud-top-left {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(10, 10, 20, 0.65);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            padding: 12px 18px;
+            border-radius: 14px;
+            backdrop-filter: blur(5px);
+        }
+
+        .weapon-icon-box {
+            font-size: 1.8rem;
+            color: #ff8c00;
+            width: 40px;
+            text-align: center;
+        }
+
+        .weapon-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .weapon-name {
+            font-size: 0.8rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .weapon-ammo {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        /* Bottom Left: Minimap */
+        .hud-bottom-left {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .minimap-container {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 4px solid rgba(255, 140, 0, 0.5);
+            background: rgba(5, 5, 10, 0.8);
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+            position: relative;
+        }
+
+        #minimap-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Bottom Right: Vehicle Speedometer and Controls */
+        .hud-bottom-right {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 15px;
+        }
+
+        .speedometer-box {
+            background: rgba(10, 10, 20, 0.7);
+            border: 1px solid rgba(255, 140, 0, 0.3);
+            border-radius: 12px;
+            padding: 10px 15px;
+            display: none; /* Only visible in vehicle */
+            align-items: flex-end;
+            gap: 5px;
+            backdrop-filter: blur(5px);
+        }
+
+        .speed-val {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffd700;
+            line-height: 1;
+        }
+
+        .speed-unit {
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 2px;
+        }
+
+        /* Center Notifications / Mission Info */
+        .hud-mission-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 15, 25, 0.85);
+            border-left: 4px solid #ff8c00;
+            padding: 10px 20px;
+            border-radius: 0 10px 10px 0;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+        }
+
+        .mission-title {
+            font-size: 0.75rem;
+            color: #ffd700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .mission-desc {
+            font-size: 0.9rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Big Alert Messages */
+        #big-alert {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(255, 69, 0, 0.6);
+            letter-spacing: 2px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 15;
+        }
+
+        #big-alert.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Subtitle/Subtext notification */
+        #action-tip {
+            position: absolute;
+            bottom: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            pointer-events: none;
+            display: none;
+            text-align: center;
+        }
+
+        /* Game Over & Victory screens */
+        #end-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 5, 5, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 60;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .end-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .title-busted {
+            color: #ff3333;
+            text-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+        }
+
+        .title-wasted {
+            color: #d32f2f;
+            text-shadow: 0 0 20px rgba(211, 47, 47, 0.5);
+        }
+
+        .title-victory {
+            color: #4caf50;
+            text-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .end-subtitle {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+
+        /* Touch Controls for Mobile Devices */
+        #mobile-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            display: none; /* Shown dynamically if mobile is detected */
+        }
+
+        .joystick-zone {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            pointer-events: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .joystick-knob {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 140, 0, 0.6);
+            border: 2px solid #ff8c00;
+            border-radius: 50%;
+            position: absolute;
+            transition: transform 0.05s ease;
+        }
+
+        .action-buttons-zone {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: grid;
+            grid-template-columns: repeat(2, auto);
+            gap: 15px;
+            pointer-events: auto;
+        }
+
+        .btn-mobile-action {
+            width: 55px;
+            height: 55px;
+            background: rgba(20, 20, 30, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-mobile-action:active {
+            background: #ff8c00;
+            transform: scale(0.9);
+        }
+
+        .btn-mobile-shoot {
+            background: rgba(211, 47, 47, 0.7);
+            border-color: #ff3333;
+            grid-column: span 2;
+            width: auto;
+            border-radius: 12px;
+            height: 45px;
+        }
+
+        /* Audio Radio Controller Overlay */
+        .hud-radio-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 10, 15, 0.75);
+            border: 1px solid rgba(255, 140, 0, 0.2);
+            padding: 8px 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        .radio-btn {
+            background: none;
+            border: none;
+            color: #ff8c00;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .radio-btn:hover {
+            color: #fff;
+        }
+
+        .radio-text {
+            font-size: 0.75rem;
+            color: #ffd700;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        /* Back to Dashboard Button */
+        .back-hub-btn {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: #ccc;
+            font-size: 0.8rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            z-index: 45;
+        }
+
+        .back-hub-btn:hover {
+            color: #fff;
+            border-color: rgba(255, 140, 0, 0.4);
+            background: rgba(255, 140, 0, 0.1);
+        }
+
+        /* Responsive styling */
+        @media (max-width: 600px) {
+            .loader-title { font-size: 2rem; }
+            .menu-container { padding: 20px; }
+            .game-logo { font-size: 1.8rem; }
+            .hud-money { font-size: 1.5rem; }
+            .minimap-container { width: 100px; height: 100px; }
+            .hud-top-right { top: 70px; right: 10px; }
+            .hud-top-left { top: 70px; left: 10px; padding: 8px 12px; }
+            .weapon-icon-box { font-size: 1.3rem; width: 30px; }
+            .weapon-ammo { font-size: 1rem; }
+            .back-hub-btn { top: 10px; font-size: 0.75rem; padding: 6px 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="loader-title">Indian Theft Auto</div>
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Loading City Elements...</div>
+    </div>
+
+    <!-- Back to Dashboard -->
+    <a href="/dashboard/" class="back-hub-btn">
+        <i class="fa-solid fa-arrow-left"></i> Game Hub Dashboard
+    </a>
+
+    <!-- Main Menu -->
+    <div id="menu-overlay">
+        <div class="menu-container">
+            <h1 class="game-logo">Indian Theft Auto</h1>
+            <div class="game-subtitle">Open World 3D Sandbox</div>
+            
+            <div class="menu-buttons">
+                <button class="menu-btn" id="start-game-btn">
+                    <i class="fa-solid fa-play"></i> Start Hijacking
+                </button>
+                <button class="menu-btn menu-btn-secondary" id="toggle-controls-btn">
+                    <i class="fa-solid fa-keyboard"></i> Toggle Controls Info
+                </button>
+            </div>
+
+            <div class="controls-info" id="controls-section">
+                <h4>Controls Guide</h4>
+                <div class="controls-grid">
+                    <span class="control-key">WASD / Arrows</span><span>Move Character / Steer Vehicle</span>
+                    <span class="control-key">Mouse Drag</span><span>Rotate Camera / Look around</span>
+                    <span class="control-key">Left Click</span><span>Use Weapon / Shoot</span>
+                    <span class="control-key">Key F / Enter</span><span>Enter / Exit Vehicle</span>
+                    <span class="control-key">Keys 1 - 4</span><span>Select Weapon</span>
+                    <span class="control-key">Shift</span><span>Run Sprint</span>
+                    <span class="control-key">Spacebar</span><span>Jump Character / Handbrake Car</span>
+                    <span class="control-key">Key R</span><span>Toggle Radio Channels</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD Overlay -->
+    <div id="hud-container">
+        <!-- Top Left: Weapon -->
+        <div class="hud-top-left">
+            <div class="weapon-icon-box" id="weapon-icon">👊</div>
+            <div class="weapon-details">
+                <span class="weapon-name" id="weapon-name">Fists</span>
+                <span class="weapon-ammo" id="weapon-ammo">--</span>
+            </div>
+        </div>
+
+        <!-- Center Mission Display -->
+        <div class="hud-mission-box" id="mission-box">
+            <div class="mission-title" id="mission-title-hud">Chai Express</div>
+            <div class="mission-desc" id="mission-desc-hud">Deliver tea to customer 1</div>
+        </div>
+
+        <!-- Top Right: Health/Armor/Wanted/Money -->
+        <div class="hud-top-right">
+            <div class="hud-money" id="hud-cash">₹1,500</div>
+            
+            <div class="hud-stat-bar-container">
+                <div class="hud-stat-bar-fill bar-health" id="health-fill" style="width: 100%;"></div>
+                <span class="bar-label">HEALTH</span>
+            </div>
+            
+            <div class="hud-stat-bar-container">
+                <div class="hud-stat-bar-fill bar-armor" id="armor-fill" style="width: 50%;"></div>
+                <span class="bar-label">ARMOR</span>
+            </div>
+
+            <div class="hud-wanted-stars" id="wanted-container">
+                <i class="fa-solid fa-star wanted-star"></i>
+                <i class="fa-solid fa-star wanted-star"></i>
+                <i class="fa-solid fa-star wanted-star"></i>
+                <i class="fa-solid fa-star wanted-star"></i>
+                <i class="fa-solid fa-star wanted-star"></i>
+            </div>
+        </div>
+
+        <!-- Bottom Left: Minimap -->
+        <div class="hud-bottom-left">
+            <div class="minimap-container">
+                <canvas id="minimap-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Center Bottom: Radio Controller -->
+        <div class="hud-radio-box" id="radio-box">
+            <button class="radio-btn" id="radio-prev"><i class="fa-solid fa-backward"></i></button>
+            <div class="radio-text" id="radio-station-name">Radio Off</div>
+            <button class="radio-btn" id="radio-next"><i class="fa-solid fa-forward"></i></button>
+        </div>
+
+        <!-- Bottom Right: Speedometer -->
+        <div class="hud-bottom-right">
+            <div class="speedometer-box" id="hud-speedometer">
+                <span class="speed-val" id="speed-val">0</span>
+                <span class="speed-unit">KM/H</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Big Center Alerts -->
+    <div id="big-alert">WASTED</div>
+
+    <!-- End Screen (Busted / Wasted / Victory) -->
+    <div id="end-screen">
+        <h1 class="end-title" id="end-title">WASTED</h1>
+        <p class="end-subtitle" id="end-subtitle">You were taken out by the police force.</p>
+        <button class="menu-btn" id="restart-btn" style="width: 200px;">
+            <i class="fa-solid fa-rotate-left"></i> Try Again
+        </button>
+    </div>
+
+    <!-- Mobile Virtual Joystick HUD -->
+    <div id="mobile-controls">
+        <div class="joystick-zone" id="joystick-zone">
+            <div class="joystick-knob" id="joystick-knob"></div>
+        </div>
+        <div class="action-buttons-zone">
+            <button class="btn-mobile-action" id="btn-mobile-enter" title="Enter/Exit Car"><i class="fa-solid fa-car"></i></button>
+            <button class="btn-mobile-action" id="btn-mobile-jump" title="Jump/Handbrake"><i class="fa-solid fa-up-long"></i></button>
+            <button class="btn-mobile-action" id="btn-mobile-weapon" title="Switch Weapon"><i class="fa-solid fa-gun"></i></button>
+            <button class="btn-mobile-action" id="btn-mobile-mission" title="Trigger Mission"><i class="fa-solid fa-flag"></i></button>
+            <button class="btn-mobile-action btn-mobile-shoot" id="btn-mobile-shoot">SHOOT / PUNCH</button>
+        </div>
+    </div>
+
+    <!-- Canvas for Three.js render -->
+    <div id="canvas-container"></div>
+
+    <!-- Three.js Library CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Custom Game Engine Code -->
+    <script>
+        // --- AUDIO SYNTHESIZER (Web Audio API) ---
+        class GameAudioSynth {
+            constructor() {
+                this.ctx = null;
+                this.radioOsc = null;
+                this.radioGain = null;
+                this.radioActive = false;
+                this.currentStation = 0;
+                this.stationNames = ["Radio Off", "Radio Mirchi Synth", "Punjabi Dhol Beats", "Desi Lo-Fi", "Mumbaicore Bass"];
+                this.radioInterval = null;
+                this.radioTempo = 130;
+                this.radioNoteIndex = 0;
+            }
+
+            init() {
+                try {
+                    if (this.ctx) return;
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                    }
+                } catch (e) {
+                    console.warn("Web Audio API is not supported in this browser:", e);
+                }
+            }
+
+            playPunch() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                
+                osc.type = 'triangle';
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.16);
+            }
+
+            playShoot(weaponType) {
+                this.init();
+                if (!this.ctx) return;
+                
+                const bufferSize = this.ctx.sampleRate * 0.15;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                if (weaponType === 'bazooka') {
+                    filter.frequency.value = 300;
+                } else if (weaponType === 'rifle') {
+                    filter.frequency.value = 1000;
+                } else {
+                    filter.frequency.value = 1500;
+                }
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.14);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                noise.start();
+                noise.stop(this.ctx.currentTime + 0.15);
+
+                if (weaponType === 'bazooka') {
+                    const lowOsc = this.ctx.createOscillator();
+                    const lowGain = this.ctx.createGain();
+                    lowOsc.connect(lowGain);
+                    lowGain.connect(this.ctx.destination);
+                    lowOsc.frequency.setValueAtTime(100, this.ctx.currentTime);
+                    lowOsc.frequency.exponentialRampToValueAtTime(10, this.ctx.currentTime + 0.4);
+                    lowGain.gain.setValueAtTime(0.8, this.ctx.currentTime);
+                    lowGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+                    lowOsc.start();
+                    lowOsc.stop(this.ctx.currentTime + 0.45);
+                }
+            }
+
+            playExplosion() {
+                this.init();
+                if (!this.ctx) return;
+                
+                const bufferSize = this.ctx.sampleRate * 0.6;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 400;
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.8, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.55);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start();
+                noise.stop(this.ctx.currentTime + 0.60);
+
+                const boom = this.ctx.createOscillator();
+                const boomGain = this.ctx.createGain();
+                boom.connect(boomGain);
+                boomGain.connect(this.ctx.destination);
+                boom.frequency.setValueAtTime(80, this.ctx.currentTime);
+                boom.frequency.exponentialRampToValueAtTime(1, this.ctx.currentTime + 0.6);
+                boomGain.gain.setValueAtTime(0.9, this.ctx.currentTime);
+                boomGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.6);
+                boom.start();
+                boom.stop(this.ctx.currentTime + 0.6);
+            }
+
+            playCarCrash() {
+                this.init();
+                this.playPunch();
+                if (!this.ctx) return;
+                
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.frequency.setValueAtTime(250, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + 0.25);
+                gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.26);
+            }
+
+            playPickup() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, this.ctx.currentTime);
+                osc.frequency.setValueAtTime(880.00, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.26);
+            }
+
+            playSiren(active) {
+                this.init();
+                if (!this.ctx || !active) {
+                    if (this.sirenOsc) {
+                        try { this.sirenOsc.stop(); } catch(e){}
+                        this.sirenOsc = null;
+                    }
+                    return;
+                }
+                if (this.sirenOsc) return;
+
+                this.sirenOsc = this.ctx.createOscillator();
+                this.sirenGain = this.ctx.createGain();
+                this.sirenOsc.type = 'triangle';
+                this.sirenOsc.connect(this.sirenGain);
+                this.sirenGain.connect(this.ctx.destination);
+
+                this.sirenGain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                this.sirenOsc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                this.sirenOsc.start();
+
+                const wobble = () => {
+                    if (!this.sirenOsc) return;
+                    const now = this.ctx.currentTime;
+                    this.sirenOsc.frequency.linearRampToValueAtTime(900, now + 0.3);
+                    this.sirenOsc.frequency.linearRampToValueAtTime(600, now + 0.6);
+                    setTimeout(wobble, 600);
+                };
+                wobble();
+            }
+
+            toggleRadio(next = true) {
+                this.init();
+                if (!this.ctx) return;
+
+                if (next) {
+                    this.currentStation = (this.currentStation + 1) % this.stationNames.length;
+                } else {
+                    this.currentStation = (this.currentStation - 1 + this.stationNames.length) % this.stationNames.length;
+                }
+                
+                const nameDiv = document.getElementById('radio-station-name');
+                if (nameDiv) nameDiv.textContent = this.stationNames[this.currentStation];
+                
+                this.radioNoteIndex = 0;
+                clearInterval(this.radioInterval);
+                this.radioInterval = null;
+
+                if (this.currentStation === 0) {
+                    this.radioActive = false;
+                    return;
+                }
+
+                this.radioActive = true;
+                
+                if (this.currentStation === 1) this.radioTempo = 120;
+                if (this.currentStation === 2) this.radioTempo = 145;
+                if (this.currentStation === 3) this.radioTempo = 85;
+                if (this.currentStation === 4) this.radioTempo = 150;
+
+                const intervalMs = (60 / this.radioTempo) * 1000 / 2;
+                this.radioInterval = setInterval(() => this.playRadioNote(), intervalMs);
+            }
+
+            playRadioNote() {
+                if (!this.radioActive || !this.ctx) return;
+                
+                let note = 0;
+                let duration = 0.2;
+                let wave = 'triangle';
+                
+                if (this.currentStation === 1) {
+                    const track = [261.63, 293.66, 329.63, 349.23, 392.00, 392.00, 349.23, 329.63, 293.66, 293.66, 329.63, 392.00, 349.23, 329.63, 261.63, 0];
+                    note = track[this.radioNoteIndex % track.length];
+                    wave = 'sawtooth';
+                } else if (this.currentStation === 2) {
+                    const track = [110, 110, 220, 110, 165, 115, 220, 110];
+                    note = track[this.radioNoteIndex % track.length];
+                    wave = 'sawtooth';
+                    if (this.radioNoteIndex % 16 === 0) {
+                        this.playSitarPluck(440);
+                    }
+                    if (this.radioNoteIndex % 16 === 4) {
+                        this.playSitarPluck(554.37);
+                    }
+                } else if (this.currentStation === 3) {
+                    const track = [196.00, 0, 246.94, 0, 293.66, 0, 329.63, 0];
+                    note = track[this.radioNoteIndex % track.length];
+                    wave = 'sine';
+                    duration = 0.4;
+                } else if (this.currentStation === 4) {
+                    const track = [80, 80, 120, 80, 140, 80, 120, 0, 90, 90, 130, 90, 150, 90, 130, 0];
+                    note = track[this.radioNoteIndex % track.length];
+                    wave = 'square';
+                    duration = 0.15;
+                }
+
+                this.radioNoteIndex++;
+
+                if (note === 0) return;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = wave;
+                osc.frequency.setValueAtTime(note, this.ctx.currentTime);
+                
+                let filterNode = null;
+                if (this.currentStation === 3) {
+                    filterNode = this.ctx.createBiquadFilter();
+                    filterNode.type = 'lowpass';
+                    filterNode.frequency.value = 600;
+                    osc.connect(filterNode);
+                    filterNode.connect(gain);
+                } else {
+                    osc.connect(gain);
+                }
+                
+                gain.connect(this.ctx.destination);
+                gain.gain.setValueAtTime(0.02, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration + 0.05);
+            }
+
+            playSitarPluck(freq) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.value = freq;
+                
+                const buzz = this.ctx.createOscillator();
+                buzz.type = 'sawtooth';
+                buzz.frequency.value = freq * 2;
+                
+                const buzzGain = this.ctx.createGain();
+                buzzGain.gain.value = 0.005;
+                buzz.connect(buzzGain);
+                buzzGain.connect(gain);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                gain.gain.setValueAtTime(0.015, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.6);
+                
+                osc.start();
+                buzz.start();
+                osc.stop(this.ctx.currentTime + 0.7);
+                buzz.stop(this.ctx.currentTime + 0.7);
+            }
+
+            stopAll() {
+                clearInterval(this.radioInterval);
+                this.radioInterval = null;
+                this.radioActive = false;
+                this.currentStation = 0;
+                const nameDiv = document.getElementById('radio-station-name');
+                if (nameDiv) nameDiv.textContent = "Radio Off";
+                this.playSiren(false);
+            }
+        }
+
+        const gameAudio = new GameAudioSynth();
+
+        // --- CORE GAME STATE ---
+        const GAME = {
+            started: false,
+            player: {
+                health: 100,
+                armor: 100,
+                cash: 1500,
+                wantedLevel: 0,
+                wantedCooldown: 0,
+                x: 0,
+                z: 25,
+                rotY: 0,
+                inVehicle: false,
+                currentVehicle: null,
+                weapon: 0,
+                ammo: [Infinity, 60, 150, 5],
+                mesh: null,
+                walkTimer: 0,
+                isSprinting: false,
+                isJumping: false,
+                jumpVal: 0,
+                lastShotTime: 0
+            },
+            weapons: [
+                { name: "Fists", icon: "👊", rate: 400, damage: 15 },
+                { name: "Pistol", icon: "🔫", rate: 350, damage: 25, ammoMax: 60 },
+                { name: "AK-47", icon: "💥", rate: 100, damage: 30, ammoMax: 150 },
+                { name: "Bazooka", icon: "🚀", rate: 1500, damage: 100, ammoMax: 5 }
+            ],
+            vehicles: [],
+            npcs: [],
+            policeCars: [],
+            bullets: [],
+            rockets: [],
+            particles: [],
+            pickups: [],
+            activeMission: null,
+            missionStep: 0,
+            missionMarker: null,
+            keys: {},
+            touch: {
+                joystickActive: false,
+                joystickStart: {x: 0, y: 0},
+                joystickMove: {x: 0, y: 0},
+                joystickAngle: 0,
+                joystickDist: 0
+            },
+            worldSize: 600,
+            roadWidth: 20,
+            buildingBoundingBoxes: [],
+            cows: []
+        };
+
+        // Camera yaw/pitch angles
+        const CAMERA = {
+            yaw: Math.PI,
+            pitch: 0.25,
+            radius: 14,
+            height: 1.8
+        };
+
+        // --- WEBGL THREE.JS SETUP ---
+        let scene, camera, renderer, clock;
+        let playerGroup, lights = {};
+
+        function initEngine() {
+            const canvasContainer = document.getElementById('canvas-container');
+            if (!canvasContainer) {
+                console.error("Critical Error: #canvas-container element not found in DOM.");
+                return;
+            }
+
+            if (typeof THREE === 'undefined') {
+                const loaderText = document.querySelector('.loader-text');
+                if (loaderText) {
+                    loaderText.innerHTML = "<span style='color: #ff3333; font-weight: bold;'>Error: Three.js graphic engine failed to load.<br>Please check your internet connection or reload.</span>";
+                }
+                const spinner = document.querySelector('.loader-spinner');
+                if (spinner) {
+                    spinner.style.borderTopColor = '#ff3333';
+                    spinner.style.animationPlayState = 'paused';
+                }
+                return;
+            }
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0b0b18);
+            scene.fog = new THREE.FogExp2(0x0b0b18, 0.005);
+
+            camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            canvasContainer.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Set dynamic sky light configurations
+            lights.ambient = new THREE.AmbientLight(0xffffff, 0.45);
+            scene.add(lights.ambient);
+
+            lights.hemi = new THREE.HemisphereLight(0xffffff, 0x444455, 0.5);
+            lights.hemi.position.set(0, 200, 0);
+            scene.add(lights.hemi);
+
+            lights.sun = new THREE.DirectionalLight(0xffffff, 1.0);
+            lights.sun.position.set(100, 200, 50);
+            lights.sun.castShadow = true;
+            lights.sun.shadow.mapSize.width = 1024;
+            lights.sun.shadow.mapSize.height = 1024;
+            lights.sun.shadow.camera.near = 0.5;
+            lights.sun.shadow.camera.far = 500;
+            const d = 150;
+            lights.sun.shadow.camera.left = -d;
+            lights.sun.shadow.camera.right = d;
+            lights.sun.shadow.camera.top = d;
+            lights.sun.shadow.camera.bottom = -d;
+            scene.add(lights.sun);
+
+            createGround();
+            buildCity();
+            spawnInitialPickups();
+            createPlayerMesh();
+            resetPlayerPosition();
+
+            window.addEventListener('resize', onWindowResize);
+            setupInputListeners();
+
+            // Handle loader fadeout and click enabling
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    loader.style.pointerEvents = 'none'; // Instantly allow clicks to pass to buttons below
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                    }, 500);
+                }
+            }, 1000);
+        }
+
+        // --- PROCEDURAL TEXTURES & GRAPHICS BUILDERS ---
+        function createBuildingTexture(neonColorHex) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#1c1c2e';
+            ctx.fillRect(0, 0, 128, 256);
+            
+            ctx.fillStyle = neonColorHex || '#ff8c00';
+            for (let y = 16; y < 240; y += 24) {
+                for (let x = 16; x < 112; x += 24) {
+                    if (Math.random() > 0.3) {
+                        ctx.shadowBlur = 8;
+                        ctx.shadowColor = ctx.fillStyle;
+                        ctx.fillRect(x, y, 12, 14);
+                    } else {
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = '#0e0e1a';
+                        ctx.fillRect(x, y, 12, 14);
+                        ctx.fillStyle = neonColorHex || '#ff8c00';
+                    }
+                }
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            return texture;
+        }
+
+        function createShopSignTexture(text, bgColor, textColor) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, 256, 64);
+
+            ctx.strokeStyle = textColor;
+            ctx.lineWidth = 4;
+            ctx.strokeRect(4, 4, 248, 56);
+
+            ctx.fillStyle = textColor;
+            ctx.font = "bold 24px 'Outfit', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = textColor;
+            ctx.fillText(text, 128, 32);
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // --- OPEN WORLD BUILDER ---
+        function createGround() {
+            const groundGeo = new THREE.PlaneGeometry(GAME.worldSize, GAME.worldSize);
+            const groundMat = new THREE.MeshStandardMaterial({ 
+                color: 0x1f2430, 
+                roughness: 0.9 
+            });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+        }
+
+        function buildCity() {
+            const roadMat = new THREE.MeshStandardMaterial({ color: 0x2d313f, roughness: 0.7 });
+            const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x3d4150, roughness: 0.8 });
+            
+            const gridSpacing = 80;
+            const halfSize = GAME.worldSize / 2;
+
+            for (let pos = -halfSize + gridSpacing; pos < halfSize; pos += gridSpacing) {
+                const roadNSGeo = new THREE.PlaneGeometry(GAME.roadWidth, GAME.worldSize);
+                const roadNS = new THREE.Mesh(roadNSGeo, roadMat);
+                roadNS.rotation.x = -Math.PI / 2;
+                roadNS.position.set(pos, 0.01, 0);
+                roadNS.receiveShadow = true;
+                scene.add(roadNS);
+
+                addRoadMarkings(pos, true);
+
+                const roadEWGeo = new THREE.PlaneGeometry(GAME.worldSize, GAME.roadWidth);
+                const roadEW = new THREE.Mesh(roadEWGeo, roadMat);
+                roadEW.rotation.x = -Math.PI / 2;
+                roadEW.position.set(0, 0.01, pos);
+                roadEW.receiveShadow = true;
+                scene.add(roadEW);
+
+                addRoadMarkings(pos, false);
+            }
+
+            const blockSpace = gridSpacing - GAME.roadWidth;
+            const startPos = -halfSize + gridSpacing;
+
+            for (let x = startPos; x < halfSize; x += gridSpacing) {
+                for (let z = startPos; z < halfSize; z += gridSpacing) {
+                    if (Math.abs(x) < 40 && Math.abs(z) < 40) {
+                        createIndiaGate(0, 0);
+                        continue;
+                    }
+
+                    const blockX = x - gridSpacing / 2;
+                    const blockZ = z - gridSpacing / 2;
+                    
+                    const sideWalkGeo = new THREE.BoxGeometry(blockSpace + 2, 0.4, blockSpace + 2);
+                    const sidewalk = new THREE.Mesh(sideWalkGeo, sidewalkMat);
+                    sidewalk.position.set(blockX, 0.2, blockZ);
+                    sidewalk.receiveShadow = true;
+                    scene.add(sidewalk);
+
+                    spawnBuildingsInBlock(blockX, blockZ, blockSpace - 4);
+                }
+            }
+
+            spawnPropsAndCows();
+        }
+
+        function addRoadMarkings(roadPos, isNS) {
+            const markingMat = new THREE.MeshBasicMaterial({ color: '#ffb703' });
+            const stripeGeo = isNS ? new THREE.PlaneGeometry(0.3, 8) : new THREE.PlaneGeometry(8, 0.3);
+            const halfSize = GAME.worldSize / 2;
+
+            for (let coord = -halfSize + 10; coord < halfSize; coord += 20) {
+                let inIntersection = false;
+                const gridSpacing = 80;
+                for (let x = -halfSize + gridSpacing; x < halfSize; x += gridSpacing) {
+                    if (Math.abs(coord - x) < GAME.roadWidth / 2 + 2) {
+                        inIntersection = true;
+                        break;
+                    }
+                }
+                if (inIntersection) continue;
+
+                const stripe = new THREE.Mesh(stripeGeo, markingMat);
+                stripe.rotation.x = -Math.PI / 2;
+                if (isNS) {
+                    stripe.position.set(roadPos, 0.02, coord);
+                } else {
+                    stripe.position.set(coord, 0.02, roadPos);
+                }
+                scene.add(stripe);
+            }
+        }
+
+        function createIndiaGate(x, z) {
+            const gateGroup = new THREE.Group();
+            gateGroup.position.set(x, 0, z);
+
+            const pillarMat = new THREE.MeshStandardMaterial({ color: '#e5c29f', roughness: 0.8 });
+            const neonOrangeMat = new THREE.MeshBasicMaterial({ color: '#ff4500' });
+            const neonGreenMat = new THREE.MeshBasicMaterial({ color: '#00ff00' });
+
+            const p1 = new THREE.Mesh(new THREE.BoxGeometry(6, 25, 6), pillarMat);
+            p1.position.set(-8, 12.5, 0);
+            p1.castShadow = true;
+            p1.receiveShadow = true;
+            gateGroup.add(p1);
+
+            const p2 = new THREE.Mesh(new THREE.BoxGeometry(6, 25, 6), pillarMat);
+            p2.position.set(8, 12.5, 0);
+            p2.castShadow = true;
+            p2.receiveShadow = true;
+            gateGroup.add(p2);
+
+            const arch = new THREE.Mesh(new THREE.BoxGeometry(26, 6, 8), pillarMat);
+            arch.position.set(0, 28, 0);
+            arch.castShadow = true;
+            gateGroup.add(arch);
+
+            const archTop = new THREE.Mesh(new THREE.BoxGeometry(20, 2, 6), pillarMat);
+            archTop.position.set(0, 32, 0);
+            gateGroup.add(archTop);
+
+            const orangeNeon = new THREE.Mesh(new THREE.BoxGeometry(26.2, 0.5, 8.2), neonOrangeMat);
+            orangeNeon.position.set(0, 30.5, 0);
+            gateGroup.add(orangeNeon);
+
+            const greenNeon = new THREE.Mesh(new THREE.BoxGeometry(26.2, 0.5, 8.2), neonGreenMat);
+            greenNeon.position.set(0, 25.5, 0);
+            gateGroup.add(greenNeon);
+
+            scene.add(gateGroup);
+
+            GAME.buildingBoundingBoxes.push(new THREE.Box3(
+                new THREE.Vector3(x - 12, 0, z - 4),
+                new THREE.Vector3(x + 12, 35, z + 4)
+            ));
+        }
+
+        function spawnBuildingsInBlock(centerX, centerZ, size) {
+            const side = size / 2;
+            const colors = ['#00ffff', '#ff00ff', '#ffd700', '#00ff66', '#ff4500'];
+            const buildType = Math.random();
+
+            if (buildType < 0.4) {
+                const offsets = [
+                    {x: -side/2, z: -side/2}, {x: side/2, z: -side/2},
+                    {x: -side/2, z: side/2}, {x: side/2, z: side/2}
+                ];
+
+                offsets.forEach(offset => {
+                    const h = 30 + Math.random() * 45;
+                    const w = side - 2;
+                    const d = side - 2;
+
+                    const neonColor = colors[Math.floor(Math.random() * colors.length)];
+                    const bTexture = createBuildingTexture(neonColor);
+                    bTexture.repeat.set(2, Math.floor(h / 10));
+                    
+                    const mat = new THREE.MeshStandardMaterial({
+                        color: 0x3a3d4d,
+                        roughness: 0.5,
+                        metalness: 0.1,
+                        map: bTexture
+                    });
+
+                    const geo = new THREE.BoxGeometry(w, h, d);
+                    const b = new THREE.Mesh(geo, mat);
+                    const bx = centerX + offset.x;
+                    const bz = centerZ + offset.z;
+                    b.position.set(bx, h / 2 + 0.4, bz);
+                    b.castShadow = true;
+                    b.receiveShadow = true;
+                    scene.add(b);
+
+                    GAME.buildingBoundingBoxes.push(new THREE.Box3(
+                        new THREE.Vector3(bx - w/2, 0, bz - d/2),
+                        new THREE.Vector3(bx + w/2, h, bz + d/2)
+                    ));
+                });
+            } else {
+                const h1 = 45 + Math.random() * 50;
+                const w1 = size - 2;
+                const d1 = side - 1;
+
+                const neonColor = colors[Math.floor(Math.random() * colors.length)];
+                const bTexture = createBuildingTexture(neonColor);
+                bTexture.repeat.set(3, Math.floor(h1 / 10));
+
+                const mat = new THREE.MeshStandardMaterial({
+                    color: 0x333644,
+                    roughness: 0.4,
+                    map: bTexture
+                });
+
+                const mainB = new THREE.Mesh(new THREE.BoxGeometry(w1, h1, d1), mat);
+                const bx = centerX;
+                const bz = centerZ - side/2;
+                mainB.position.set(bx, h1 / 2 + 0.4, bz);
+                mainB.castShadow = true;
+                scene.add(mainB);
+                
+                GAME.buildingBoundingBoxes.push(new THREE.Box3(
+                    new THREE.Vector3(bx - w1/2, 0, bz - d1/2),
+                    new THREE.Vector3(bx + w1/2, h1, bz + d1/2)
+                ));
+
+                createShopStall(centerX, centerZ + side/2, size - 4);
+            }
+        }
+
+        function createShopStall(x, z, width) {
+            const stallGroup = new THREE.Group();
+            stallGroup.position.set(x, 0.4, z);
+
+            const woodMat = new THREE.MeshStandardMaterial({ color: 0x6e4e37, roughness: 0.9 });
+            const counterMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.5 });
+            
+            const stall = new THREE.Mesh(new THREE.BoxGeometry(width, 5, 8), woodMat);
+            stall.position.set(0, 2.5, 0);
+            stall.castShadow = true;
+            stallGroup.add(stall);
+
+            const counter = new THREE.Mesh(new THREE.BoxGeometry(width - 2, 1.2, 2), counterMat);
+            counter.position.set(0, 1.2, 3);
+            stallGroup.add(counter);
+
+            const signs = [
+                {name: "Pappu Chai Stall ☕", bg: "#ff4500", text: "#ffffff"},
+                {name: "Desi Biryani Corner 🍗", bg: "#008000", text: "#ffd700"},
+                {name: "Sharma Ji Ki Samosay 🥟", bg: "#ffd700", text: "#ff4500"},
+                {name: "ITF Cyber Cafe 🖥️", bg: "#0000ff", text: "#00ffff"}
+            ];
+            const signData = signs[Math.floor(Math.random() * signs.length)];
+            const signTex = createShopSignTexture(signData.name, signData.bg, signData.text);
+            const signMat = new THREE.MeshBasicMaterial({ map: signTex });
+            const signMesh = new THREE.Mesh(new THREE.PlaneGeometry(width - 1, 1.8), signMat);
+            signMesh.position.set(0, 4.2, 4.05);
+            stallGroup.add(signMesh);
+
+            scene.add(stallGroup);
+
+            GAME.buildingBoundingBoxes.push(new THREE.Box3(
+                new THREE.Vector3(x - width/2, 0, z - 4.5),
+                new THREE.Vector3(x + width/2, 6, z + 4.5)
+            ));
+        }
+
+        function spawnPropsAndCows() {
+            const cowMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
+            const spotMat = new THREE.MeshStandardMaterial({ color: 0x332211, roughness: 0.9 });
+            const hornMat = new THREE.MeshStandardMaterial({ color: '#555' });
+
+            for (let i = 0; i < 20; i++) {
+                const cowGroup = new THREE.Group();
+                const rx = (Math.random() - 0.5) * (GAME.worldSize - 60);
+                const rz = (Math.random() - 0.5) * (GAME.worldSize - 60);
+                cowGroup.position.set(rx, 0.8, rz);
+                
+                const body = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.1, 2.4), cowMat);
+                body.position.set(0, 0.3, 0);
+                body.castShadow = true;
+                cowGroup.add(body);
+
+                const spot = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, 0.8), spotMat);
+                spot.position.set(0.4, 0.7, 0.2);
+                body.add(spot);
+
+                const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 1), cowMat);
+                head.position.set(0, 0.8, 1.4);
+                cowGroup.add(head);
+
+                const h1 = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.4, 4), hornMat);
+                h1.rotation.z = -Math.PI/6;
+                h1.position.set(-0.3, 1.3, 1.3);
+                cowGroup.add(h1);
+
+                const h2 = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.4, 4), hornMat);
+                h2.rotation.z = Math.PI/6;
+                h2.position.set(0.3, 1.3, 1.3);
+                cowGroup.add(h2);
+
+                const legGeo = new THREE.BoxGeometry(0.3, 0.9, 0.3);
+                const l1 = new THREE.Mesh(legGeo, cowMat); l1.position.set(-0.6, -0.6, 0.9); cowGroup.add(l1);
+                const l2 = new THREE.Mesh(legGeo, cowMat); l2.position.set(0.6, -0.6, 0.9); cowGroup.add(l2);
+                const l3 = new THREE.Mesh(legGeo, cowMat); l3.position.set(-0.6, -0.6, -0.9); cowGroup.add(l3);
+                const l4 = new THREE.Mesh(legGeo, cowMat); l4.position.set(0.6, -0.6, -0.9); cowGroup.add(l4);
+
+                scene.add(cowGroup);
+
+                GAME.cows.push({
+                    mesh: cowGroup,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vz: (Math.random() - 0.5) * 0.5,
+                    wanderTimer: Math.random() * 50
+                });
+            }
+
+            // Spawn parked cars safely on road shoulders
+            const gridSpacing = 80;
+            const halfSize = GAME.worldSize / 2;
+            for (let i = 0; i < 25; i++) {
+                const isNS = Math.random() > 0.5;
+                const roadIndex = Math.floor(Math.random() * 7);
+                const roadPos = (-halfSize + gridSpacing) + roadIndex * gridSpacing;
+                
+                const coord = (Math.random() - 0.5) * (GAME.worldSize - 60);
+                const sideOffset = (GAME.roadWidth / 2 - 2) * (Math.random() > 0.5 ? 1 : -1);
+                
+                let vx, vz, rot;
+                if (isNS) {
+                    vx = roadPos + sideOffset;
+                    vz = coord;
+                    rot = 0;
+                } else {
+                    vx = coord;
+                    vz = roadPos + sideOffset;
+                    rot = Math.PI / 2;
+                }
+                
+                if (Math.abs(vx) < 50 && Math.abs(vz) < 50) continue;
+
+                const type = Math.random() > 0.6 ? 'sports' : (Math.random() > 0.3 ? 'rickshaw' : 'sedan');
+                spawnVehicle(vx, vz, type, rot, true);
+            }
+
+            for (let i = 0; i < 40; i++) {
+                spawnPedestrian();
+            }
+        }
+
+        // --- VEHICLE SPAWNER & BUILDER ---
+        function spawnVehicle(x, z, type, rotY = 0, isParked = false) {
+            const vGroup = new THREE.Group();
+            vGroup.position.set(x, 0.2, z);
+            vGroup.rotation.y = rotY;
+
+            let length, width, height, speedMax, healthMax;
+            let wheelMeshes = [];
+
+            if (type === 'rickshaw') {
+                length = 3.6; width = 2.0; height = 2.4;
+                speedMax = 25; healthMax = 120;
+                
+                const greenMat = new THREE.MeshStandardMaterial({ color: '#005e1a', roughness: 0.5 });
+                const yellowMat = new THREE.MeshStandardMaterial({ color: '#ffb703', roughness: 0.5 });
+                const blackMat = new THREE.MeshStandardMaterial({ color: '#111111' });
+                const frameMat = new THREE.MeshStandardMaterial({ color: '#888888', metalness: 0.8 });
+
+                const base = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.6, 3.2), greenMat);
+                base.position.y = 0.5;
+                base.castShadow = true;
+                vGroup.add(base);
+
+                const roof = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.4, 2.6), yellowMat);
+                roof.name = "roof";
+                roof.position.set(0, 2.1, -0.2);
+                roof.castShadow = true;
+                vGroup.add(roof);
+
+                const p1 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2), frameMat); p1.position.set(-0.8, 1.4, 1.0); vGroup.add(p1);
+                const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2), frameMat); p2.position.set(0.8, 1.4, 1.0); vGroup.add(p2);
+                const p3 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2), frameMat); p3.position.set(-0.8, 1.4, -1.2); vGroup.add(p3);
+                const p4 = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.2), frameMat); p4.position.set(0.8, 1.4, -1.2); vGroup.add(p4);
+
+                const wheelGeo = new THREE.CylinderGeometry(0.45, 0.45, 0.35, 12);
+                wheelGeo.rotateZ(Math.PI / 2);
+
+                const frontWheel = new THREE.Mesh(wheelGeo, blackMat);
+                frontWheel.position.set(0, 0.45, 1.3);
+                frontWheel.castShadow = true;
+                vGroup.add(frontWheel);
+                wheelMeshes.push(frontWheel);
+
+                const backLWheel = new THREE.Mesh(wheelGeo, blackMat);
+                backLWheel.position.set(-0.95, 0.45, -1.1);
+                backLWheel.castShadow = true;
+                vGroup.add(backLWheel);
+                wheelMeshes.push(backLWheel);
+
+                const backRWheel = new THREE.Mesh(wheelGeo, blackMat);
+                backRWheel.position.set(0.95, 0.45, -1.1);
+                backRWheel.castShadow = true;
+                vGroup.add(backRWheel);
+                wheelMeshes.push(backRWheel);
+
+            } else if (type === 'sedan' || type === 'police') {
+                length = 4.8; width = 2.2; height = 1.6;
+                speedMax = 38; healthMax = 200;
+
+                const primaryMat = new THREE.MeshStandardMaterial({ 
+                    color: type === 'police' ? '#111111' : '#f5f5f5',
+                    roughness: 0.3 
+                });
+                const secondaryMat = new THREE.MeshStandardMaterial({ 
+                    color: type === 'police' ? '#eeeeee' : '#ffd700',
+                    roughness: 0.3 
+                });
+                const glassMat = new THREE.MeshStandardMaterial({ color: '#223344', metalness: 0.9, roughness: 0.1 });
+                const tireMat = new THREE.MeshStandardMaterial({ color: '#151515' });
+
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.7, 4.4), primaryMat);
+                body.position.y = 0.55;
+                body.castShadow = true;
+                vGroup.add(body);
+
+                const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.65, 2.4), glassMat);
+                cabin.position.set(0, 1.15, -0.3);
+                cabin.castShadow = true;
+                vGroup.add(cabin);
+
+                const roofCover = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.1, 2.02), secondaryMat);
+                roofCover.position.set(0, 1.5, -0.3);
+                vGroup.add(roofCover);
+
+                const wheelGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.4, 12);
+                wheelGeo.rotateZ(Math.PI / 2);
+
+                const offsets = [
+                    {x: -1.05, y: 0.5, z: 1.4}, {x: 1.05, y: 0.5, z: 1.4},
+                    {x: -1.05, y: 0.5, z: -1.4}, {x: 1.05, y: 0.5, z: -1.4}
+                ];
+
+                offsets.forEach(offset => {
+                    const w = new THREE.Mesh(wheelGeo, tireMat);
+                    w.position.set(offset.x, offset.y, offset.z);
+                    w.castShadow = true;
+                    vGroup.add(w);
+                    wheelMeshes.push(w);
+                });
+
+                if (type === 'police') {
+                    const beaconGroup = new THREE.Group();
+                    beaconGroup.position.set(0, 1.6, -0.3);
+
+                    const beaconBar = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.15, 0.25), new THREE.MeshStandardMaterial({color: '#222'}));
+                    beaconGroup.add(beaconBar);
+
+                    const redL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.2), new THREE.MeshBasicMaterial({color: '#ff0000'}));
+                    redL.position.set(-0.25, 0.1, 0);
+                    beaconGroup.add(redL);
+
+                    const blueL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.2), new THREE.MeshBasicMaterial({color: '#0000ff'}));
+                    blueL.position.set(0.25, 0.1, 0);
+                    beaconGroup.add(blueL);
+
+                    vGroup.add(beaconGroup);
+                    vGroup.beacon = { red: redL, blue: blueL, timer: 0 };
+                }
+
+            } else if (type === 'sports') {
+                length = 4.6; width = 2.3; height = 1.3;
+                speedMax = 52; healthMax = 150;
+
+                const primaryMat = new THREE.MeshStandardMaterial({ color: '#ff2a2a', roughness: 0.2, metalness: 0.7 });
+                const glassMat = new THREE.MeshStandardMaterial({ color: '#111', roughness: 0.1 });
+                const tireMat = new THREE.MeshStandardMaterial({ color: '#151515' });
+
+                const body = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.5, 4.3), primaryMat);
+                body.position.y = 0.45;
+                body.castShadow = true;
+                vGroup.add(body);
+
+                const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.45, 1.8), glassMat);
+                cabin.position.set(0, 0.85, -0.3);
+                vGroup.add(cabin);
+
+                const spoilerSp = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), primaryMat); spoilerSp.position.set(-0.9, 0.8, -1.8); vGroup.add(spoilerSp);
+                const spoilerSp2 = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), primaryMat); spoilerSp2.position.set(0.9, 0.8, -1.8); vGroup.add(spoilerSp2);
+                const spoilerWing = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.1, 0.4), primaryMat); spoilerWing.position.set(0, 1.05, -1.8); vGroup.add(spoilerWing);
+
+                const wheelGeo = new THREE.CylinderGeometry(0.48, 0.48, 0.42, 12);
+                wheelGeo.rotateZ(Math.PI / 2);
+
+                const offsets = [
+                    {x: -1.1, y: 0.45, z: 1.3}, {x: 1.1, y: 0.45, z: 1.3},
+                    {x: -1.1, y: 0.45, z: -1.3}, {x: 1.1, y: 0.45, z: -1.3}
+                ];
+
+                offsets.forEach(offset => {
+                    const w = new THREE.Mesh(wheelGeo, tireMat);
+                    w.position.set(offset.x, offset.y, offset.z);
+                    w.castShadow = true;
+                    vGroup.add(w);
+                    wheelMeshes.push(w);
+                });
+            }
+
+            const headLMat = new THREE.MeshBasicMaterial({ color: '#ffffe0' });
+            const hl1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 0.1), headLMat); hl1.position.set(-width/2 + 0.3, height/2 - 0.1, length/2 + 0.05); vGroup.add(hl1);
+            const hl2 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 0.1), headLMat); hl2.position.set(width/2 - 0.3, height/2 - 0.1, length/2 + 0.05); vGroup.add(hl2);
+
+            scene.add(vGroup);
+
+            const vehicleData = {
+                mesh: vGroup,
+                type: type,
+                length: length,
+                width: width,
+                height: height,
+                speed: 0,
+                speedMax: speedMax,
+                health: healthMax,
+                healthMax: healthMax,
+                isParked: isParked,
+                wheelMeshes: wheelMeshes,
+                isPolice: type === 'police',
+                aiTargetX: x,
+                aiTargetZ: z,
+                aiWaitTimer: 0,
+                damageFlash: 0
+            };
+
+            GAME.vehicles.push(vehicleData);
+            return vehicleData;
+        }
+
+        // --- PLAYER CREATOR ---
+        function createPlayerMesh() {
+            playerGroup = new THREE.Group();
+            
+            const skinMat = new THREE.MeshStandardMaterial({ color: '#ffdbac', roughness: 0.8 });
+            const shirtMat = new THREE.MeshStandardMaterial({ color: '#ff8c00', roughness: 0.6 });
+            const pantsMat = new THREE.MeshStandardMaterial({ color: '#03045e', roughness: 0.7 });
+            const hairMat = new THREE.MeshStandardMaterial({ color: '#050505', roughness: 0.9 });
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.4, 0.5), shirtMat);
+            torso.position.y = 1.5;
+            torso.castShadow = true;
+            playerGroup.add(torso);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.65, 0.65), skinMat);
+            head.position.set(0, 2.5, 0);
+            head.castShadow = true;
+            playerGroup.add(head);
+
+            const hair = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.25, 0.68), hairMat);
+            hair.position.set(0, 2.85, 0.02);
+            playerGroup.add(hair);
+
+            const armGeo = new THREE.BoxGeometry(0.3, 1.2, 0.3);
+            const leftArm = new THREE.Mesh(armGeo, shirtMat); leftArm.position.set(-0.7, 1.5, 0); playerGroup.add(leftArm); playerGroup.leftArm = leftArm;
+            const rightArm = new THREE.Mesh(armGeo, shirtMat); rightArm.position.set(0.7, 1.5, 0); playerGroup.add(rightArm); playerGroup.rightArm = rightArm;
+
+            const legGeo = new THREE.BoxGeometry(0.38, 1.2, 0.38);
+            const leftLeg = new THREE.Mesh(legGeo, pantsMat); leftLeg.position.set(-0.3, 0.6, 0); leftLeg.castShadow = true; playerGroup.add(leftLeg); playerGroup.leftLeg = leftLeg;
+            const rightLeg = new THREE.Mesh(legGeo, pantsMat); rightLeg.position.set(0.3, 0.6, 0); rightLeg.castShadow = true; playerGroup.add(rightLeg); playerGroup.rightLeg = rightLeg;
+
+            scene.add(playerGroup);
+            GAME.player.mesh = playerGroup;
+        }
+
+        function resetPlayerPosition() {
+            GAME.player.x = 0;
+            GAME.player.z = 25;
+            GAME.player.health = 100;
+            GAME.player.armor = 50;
+            GAME.player.wantedLevel = 0;
+            GAME.player.inVehicle = false;
+            GAME.player.currentVehicle = null;
+
+            playerGroup.position.set(GAME.player.x, 0, GAME.player.z);
+            playerGroup.rotation.y = 0;
+            playerGroup.visible = true;
+
+            CAMERA.yaw = Math.PI;
+            CAMERA.pitch = 0.25;
+
+            updateHUD();
+        }
+
+        // --- PEDESTRIAN SPAWNER ---
+        function spawnPedestrian() {
+            const pGroup = new THREE.Group();
+            const shirtColors = ['#ff3333', '#33ff33', '#3333ff', '#ffd700', '#ff00ff', '#00ffff'];
+            const pantsColors = ['#222233', '#111', '#228b22', '#800020'];
+
+            const skinMat = new THREE.MeshStandardMaterial({ color: '#e0ac69', roughness: 0.8 });
+            const shirtMat = new THREE.MeshStandardMaterial({ color: shirtColors[Math.floor(Math.random() * shirtColors.length)], roughness: 0.7 });
+            const pantsMat = new THREE.MeshStandardMaterial({ color: pantsColors[Math.floor(Math.random() * pantsColors.length)], roughness: 0.8 });
+
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.4), shirtMat);
+            torso.position.y = 1.3;
+            pGroup.add(torso);
+
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.55, 0.55), skinMat);
+            head.position.set(0, 2.1, 0);
+            pGroup.add(head);
+
+            const legGeo = new THREE.BoxGeometry(0.3, 0.9, 0.3);
+            const lLeg = new THREE.Mesh(legGeo, pantsMat); lLeg.position.set(-0.22, 0.45, 0); pGroup.add(lLeg);
+            const rLeg = new THREE.Mesh(legGeo, pantsMat); rLeg.position.set(0.22, 0.45, 0); pGroup.add(rLeg);
+
+            const rx = (Math.random() - 0.5) * (GAME.worldSize - 50);
+            const rz = (Math.random() - 0.5) * (GAME.worldSize - 50);
+            pGroup.position.set(rx, 0, rz);
+            scene.add(pGroup);
+
+            GAME.npcs.push({
+                mesh: pGroup,
+                leftLeg: lLeg,
+                rightLeg: rLeg,
+                state: 'wander',
+                targetX: rx,
+                targetZ: rz,
+                speed: 3 + Math.random() * 2,
+                walkTimer: Math.random() * 10,
+                fleeTimer: 0
+            });
+        }
+
+        // --- PICKUP SPAWNER ---
+        function spawnInitialPickups() {
+            for (let i = 0; i < 15; i++) {
+                const px = (Math.random() - 0.5) * (GAME.worldSize - 80);
+                const pz = (Math.random() - 0.5) * (GAME.worldSize - 80);
+                
+                const typeRand = Math.random();
+                let type = 'health';
+                if (typeRand < 0.25) type = 'ammo';
+                else if (typeRand < 0.50) type = 'cash';
+                else if (typeRand < 0.75) type = 'star';
+
+                spawnPickup(px, pz, type);
+            }
+        }
+
+        function spawnPickup(x, z, type) {
+            const pGroup = new THREE.Group();
+            pGroup.position.set(x, 1.2, z);
+
+            let mesh;
+            if (type === 'health') {
+                mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardMaterial({color: '#f44336'}));
+                const cross = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.7, 1.05), new THREE.MeshBasicMaterial({color: '#fff'}));
+                const cross2 = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.3, 1.05), new THREE.MeshBasicMaterial({color: '#fff'}));
+                pGroup.add(cross, cross2);
+            } else if (type === 'ammo') {
+                mesh = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 1), new THREE.MeshStandardMaterial({color: '#2e7d32'}));
+            } else if (type === 'cash') {
+                mesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 0.6), new THREE.MeshStandardMaterial({color: '#4caf50'}));
+            } else if (type === 'star') {
+                mesh = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.2, 5), new THREE.MeshStandardMaterial({color: '#ffd700', emissive: '#ff8c00'}));
+                mesh.rotation.x = Math.PI / 2;
+            }
+
+            pGroup.add(mesh);
+            scene.add(pGroup);
+
+            GAME.pickups.push({
+                mesh: pGroup,
+                type: type,
+                spinVal: Math.random() * 10
+            });
+        }
+
+        // --- PARTICLE / EXPLOSION EFFECTS ---
+        function createExplosion(x, y, z) {
+            gameAudio.playExplosion();
+
+            const pCount = 35;
+            const geo = new THREE.SphereGeometry(0.2, 8, 8);
+            const mats = [
+                new THREE.MeshBasicMaterial({color: '#ff4500'}),
+                new THREE.MeshBasicMaterial({color: '#ff8c00'}),
+                new THREE.MeshBasicMaterial({color: '#ffd700'}),
+                new THREE.MeshBasicMaterial({color: '#444444'})
+            ];
+
+            for (let i = 0; i < pCount; i++) {
+                const mat = mats[Math.floor(Math.random() * mats.length)];
+                const p = new THREE.Mesh(geo, mat);
+                p.position.set(x, y, z);
+                
+                const speed = 5 + Math.random() * 8;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                
+                const vx = speed * Math.sin(phi) * Math.cos(theta);
+                const vy = speed * Math.cos(phi);
+                const vz = speed * Math.sin(phi) * Math.sin(theta);
+
+                scene.add(p);
+                GAME.particles.push({
+                    mesh: p,
+                    vx: vx,
+                    vy: vy,
+                    vz: vz,
+                    life: 1.0,
+                    decay: 1.5 + Math.random() * 1.5
+                });
+            }
+        }
+
+        function createSpark(x, y, z, color = '#ffd700') {
+            const geo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+            const mat = new THREE.MeshBasicMaterial({color: color});
+            const p = new THREE.Mesh(geo, mat);
+            p.position.set(x, y, z);
+            scene.add(p);
+            
+            GAME.particles.push({
+                mesh: p,
+                vx: (Math.random() - 0.5) * 5,
+                vy: (Math.random() + 0.5) * 4,
+                vz: (Math.random() - 0.5) * 5,
+                life: 0.5,
+                decay: 2.0
+            });
+        }
+
+        // --- SHOOTING & WEAPONS LOGIC ---
+        function fireWeapon() {
+            const now = Date.now();
+            const w = GAME.weapons[GAME.player.weapon];
+            
+            if (now - GAME.player.lastShotTime < w.rate) return;
+            
+            if (GAME.player.ammo[GAME.player.weapon] <= 0) {
+                showToastAlert("Out of Ammo!");
+                return;
+            }
+
+            GAME.player.lastShotTime = now;
+            if (GAME.player.weapon > 0) {
+                GAME.player.ammo[GAME.player.weapon]--;
+            }
+
+            updateHUD();
+
+            if (GAME.player.weapon === 0) {
+                gameAudio.playPunch();
+            } else if (GAME.player.weapon === 1) {
+                gameAudio.playShoot('pistol');
+            } else if (GAME.player.weapon === 2) {
+                gameAudio.playShoot('rifle');
+            } else if (GAME.player.weapon === 3) {
+                gameAudio.playShoot('bazooka');
+            }
+
+            swingPlayerArms();
+
+            let direction = new THREE.Vector3(0, 0, 1);
+            if (GAME.player.inVehicle) {
+                direction.applyQuaternion(GAME.player.currentVehicle.mesh.quaternion);
+            } else {
+                direction.applyQuaternion(playerGroup.quaternion);
+            }
+
+            let startPos = playerGroup.position.clone();
+            startPos.y += 1.5;
+
+            if (GAME.player.weapon > 0) {
+                triggerCrime(1);
+            }
+
+            if (w.name === "Bazooka") {
+                const rocketGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.8, 6);
+                rocketGeo.rotateX(Math.PI / 2);
+                const rocketMat = new THREE.MeshBasicMaterial({color: '#cc3300'});
+                const rocketMesh = new THREE.Mesh(rocketGeo, rocketMat);
+                rocketMesh.position.copy(startPos);
+                rocketMesh.quaternion.copy(GAME.player.inVehicle ? GAME.player.currentVehicle.mesh.quaternion : playerGroup.quaternion);
+                scene.add(rocketMesh);
+
+                GAME.rockets.push({
+                    mesh: rocketMesh,
+                    dir: direction.clone(),
+                    speed: 45,
+                    life: 3.0
+                });
+            } else {
+                const raycaster = new THREE.Raycaster(startPos, direction);
+                const lineMat = new THREE.LineBasicMaterial({color: '#ffd700'});
+                const points = [startPos.clone(), startPos.clone().addScaledVector(direction, 40)];
+                const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                const tracer = new THREE.Line(lineGeo, lineMat);
+                scene.add(tracer);
+                setTimeout(() => scene.remove(tracer), 35);
+
+                checkHitscanCollisions(raycaster, w.damage, startPos, direction);
+            }
+        }
+
+        function swingPlayerArms() {
+            if (!playerGroup.leftArm || !playerGroup.rightArm) return;
+            playerGroup.rightArm.rotation.x = -Math.PI / 2;
+            setTimeout(() => {
+                playerGroup.rightArm.rotation.x = 0;
+            }, 100);
+        }
+
+        function checkHitscanCollisions(raycaster, damage, startPos, direction) {
+            for (let i = GAME.npcs.length - 1; i >= 0; i--) {
+                const npc = GAME.npcs[i];
+                const npcBox = new THREE.Box3().setFromObject(npc.mesh);
+                const intersection = new THREE.Vector3();
+                if (raycaster.ray.intersectBox(npcBox, intersection)) {
+                    createSpark(intersection.x, intersection.y, intersection.z, '#ff0000');
+                    
+                    npc.state = 'flee';
+                    npc.fleeTimer = 100;
+                    npc.targetX = npc.mesh.position.x - direction.x * 30;
+                    npc.targetZ = npc.mesh.position.z - direction.z * 30;
+
+                    createExplosion(npc.mesh.position.x, 1, npc.mesh.position.z);
+                    scene.remove(npc.mesh);
+                    GAME.npcs.splice(i, 1);
+                    
+                    triggerCrime(3);
+                    GAME.player.cash += 250;
+                    updateHUD();
+                    showToastAlert("NPC Eliminated! Grabbed ₹250");
+                    return;
+                }
+            }
+
+            for (let i = GAME.vehicles.length - 1; i >= 0; i--) {
+                const veh = GAME.vehicles[i];
+                const vehBox = new THREE.Box3().setFromObject(veh.mesh);
+                const intersection = new THREE.Vector3();
+                if (raycaster.ray.intersectBox(vehBox, intersection)) {
+                    createSpark(intersection.x, intersection.y, intersection.z, '#ffffff');
+                    veh.health -= damage;
+                    veh.damageFlash = 2;
+                    
+                    if (veh.health <= 0) {
+                        createExplosion(veh.mesh.position.x, 1, veh.mesh.position.z);
+                        if (GAME.player.inVehicle && GAME.player.currentVehicle === veh) {
+                            wasted();
+                        }
+                        scene.remove(veh.mesh);
+                        GAME.vehicles.splice(i, 1);
+                        triggerCrime(5);
+                    }
+                    return;
+                }
+            }
+
+            for (let i = GAME.cows.length - 1; i >= 0; i--) {
+                const cow = GAME.cows[i];
+                const cowBox = new THREE.Box3().setFromObject(cow.mesh);
+                const intersection = new THREE.Vector3();
+                if (raycaster.ray.intersectBox(cowBox, intersection)) {
+                    createSpark(intersection.x, intersection.y, intersection.z, '#9c5a3c');
+                    createExplosion(cow.mesh.position.x, 1.2, cow.mesh.position.z);
+                    scene.remove(cow.mesh);
+                    GAME.cows.splice(i, 1);
+                    triggerCrime(2);
+                    return;
+                }
+            }
+        }
+
+        // --- WANTED & CRIME SYSTEM ---
+        function triggerCrime(amount) {
+            GAME.player.wantedCooldown = 500;
+            
+            let oldStars = Math.floor(GAME.player.wantedLevel);
+            GAME.player.wantedLevel = Math.min(5.0, GAME.player.wantedLevel + amount * 0.15);
+            let newStars = Math.floor(GAME.player.wantedLevel);
+
+            if (newStars > oldStars) {
+                showToastAlert(`Wanted Level Increased: ${newStars} Stars!`);
+                gameAudio.playSiren(true);
+                dispatchPoliceSquad();
+            }
+            updateHUD();
+        }
+
+        function dispatchPoliceSquad() {
+            const spawnDist = 90;
+            const angle = Math.random() * Math.PI * 2;
+            const px = GAME.player.x + Math.cos(angle) * spawnDist;
+            const pz = GAME.player.z + Math.sin(angle) * spawnDist;
+
+            const clampedX = Math.max(-GAME.worldSize/2 + 20, Math.min(GAME.worldSize/2 - 20, px));
+            const clampedZ = Math.max(-GAME.worldSize/2 + 20, Math.min(GAME.worldSize/2 - 20, pz));
+
+            const pol = spawnVehicle(clampedX, clampedZ, 'police', 0, false);
+            pol.health = 250;
+            pol.speedMax = 44;
+        }
+
+        // --- ENTER / HIJACK VEHICLE SYSTEM ---
+        function toggleVehicleEntry() {
+            if (GAME.player.inVehicle) {
+                const veh = GAME.player.currentVehicle;
+                GAME.player.inVehicle = false;
+                GAME.player.currentVehicle = null;
+                
+                playerGroup.position.copy(veh.mesh.position);
+                playerGroup.position.x += veh.width * 0.8;
+                playerGroup.position.y = 0;
+                playerGroup.visible = true;
+                
+                document.getElementById('hud-speedometer').style.display = 'none';
+                showToastAlert("Exited Vehicle");
+            } else {
+                let nearest = null;
+                let minDist = 7.0;
+
+                GAME.vehicles.forEach(veh => {
+                    const dist = playerGroup.position.distanceTo(veh.mesh.position);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = veh;
+                    }
+                });
+
+                if (nearest) {
+                    GAME.player.inVehicle = true;
+                    GAME.player.currentVehicle = nearest;
+                    nearest.isParked = false;
+                    playerGroup.visible = false;
+
+                    if (nearest.type !== 'police' && nearest.isParked === false) {
+                        triggerCrime(2);
+                    }
+
+                    CAMERA.yaw = nearest.mesh.rotation.y + Math.PI;
+                    CAMERA.pitch = 0.2;
+
+                    document.getElementById('hud-speedometer').style.display = 'flex';
+                    showToastAlert(`Driving ${nearest.type.toUpperCase()}`);
+                    GAME.player.isJumping = false;
+                } else {
+                    showToastAlert("No vehicle nearby! (Walk closer to a car/rickshaw)");
+                }
+            }
+        }
+
+        // --- MINI MISSIONS WORKFRAME ---
+        const MISSIONS = [
+            {
+                name: "Chai Express ☕",
+                desc: "Deliver fresh tea around the district!",
+                steps: [
+                    { x: -160, z: -160, text: "Deliver to Samosa shop corner" },
+                    { x: 160, z: -80, text: "Deliver to IT Cyber park clerk" },
+                    { x: 0, z: 120, text: "Bring Chai to auto stand union driver" }
+                ],
+                reward: 1200
+            },
+            {
+                name: "Rickshaw Heist 🛺🏆",
+                desc: "Steal the legendary Golden Rickshaw!",
+                steps: [
+                    { x: -240, z: 240, text: "Infiltrate the local Don's guarded estate" },
+                    { x: 0, z: 50, text: "Drive the Golden Rickshaw back to India Gate central monument!" }
+                ],
+                reward: 3500
+            },
+            {
+                name: "High Speed Challenge 🏎️🔥",
+                desc: "Keep sports car over 35 KM/H for 30s!",
+                steps: [
+                    { x: 0, z: 0, text: "Find and enter a red sports car" },
+                    { x: 0, z: 0, text: "Drive fast! Do not drop speed!" }
+                ],
+                reward: 2000
+            }
+        ];
+
+        function startMission(id) {
+            GAME.activeMission = MISSIONS[id];
+            GAME.missionStep = 0;
+            
+            showBigAlert(GAME.activeMission.name, "Mission Started!");
+            
+            const mBox = document.getElementById('mission-box');
+            if (mBox) {
+                mBox.style.display = 'block';
+            }
+            const titleHud = document.getElementById('mission-title-hud');
+            if (titleHud) titleHud.textContent = GAME.activeMission.name;
+            const descHud = document.getElementById('mission-desc-hud');
+            if (descHud) descHud.textContent = GAME.activeMission.steps[0].text;
+
+            createMissionMarker(GAME.activeMission.steps[0].x, GAME.activeMission.steps[0].z);
+            gameAudio.playPickup();
+        }
+
+        function createMissionMarker(x, z) {
+            if (GAME.missionMarker) {
+                scene.remove(GAME.missionMarker);
+            }
+
+            const geo = new THREE.RingGeometry(3.0, 3.5, 16);
+            geo.rotateX(-Math.PI / 2);
+            const mat = new THREE.MeshBasicMaterial({color: '#00ffff', side: THREE.DoubleSide});
+            GAME.missionMarker = new THREE.Mesh(geo, mat);
+            GAME.missionMarker.position.set(x, 0.3, z);
+            scene.add(GAME.missionMarker);
+        }
+
+        function updateMissionLogic(delta) {
+            if (!GAME.activeMission) {
+                const distToTrigger = playerGroup.position.distanceTo(new THREE.Vector3(0, 0, 75));
+                const actionTip = document.getElementById('action-tip');
+                if (distToTrigger < 6) {
+                    if (actionTip) {
+                        actionTip.style.display = 'block';
+                        actionTip.innerHTML = "Press <b style='color:#ff8c00'>M</b> or Tap <i class='fa-solid fa-flag'></i> to start random Mission";
+                    }
+                    if (GAME.keys['m']) {
+                        const randomId = Math.floor(Math.random() * MISSIONS.length);
+                        startMission(randomId);
+                    }
+                } else {
+                    if (actionTip) actionTip.style.display = 'none';
+                }
+                return;
+            }
+
+            if (GAME.missionMarker) {
+                GAME.missionMarker.rotation.y += delta * 2;
+                GAME.missionMarker.position.y = 0.3 + Math.sin(Date.now() * 0.005) * 0.15;
+            }
+
+            const currentStep = GAME.activeMission.steps[GAME.missionStep];
+            const targetPos = new THREE.Vector3(currentStep.x, 0, currentStep.z);
+            const playerPos = playerGroup.position.clone();
+            
+            if (GAME.activeMission.name.includes("High Speed")) {
+                if (GAME.missionStep === 0) {
+                    if (GAME.player.inVehicle && GAME.player.currentVehicle.type === 'sports') {
+                        advanceMissionStep();
+                        GAME.activeMission.speedTimer = 30.0;
+                    }
+                } else {
+                    if (!GAME.player.inVehicle || GAME.player.currentVehicle.type !== 'sports') {
+                        failMission("Left the Sports Car!");
+                        return;
+                    }
+                    const speedKmh = Math.floor(GAME.player.currentVehicle.speed * 2.2);
+                    if (speedKmh < 35) {
+                        failMission("Speed dropped below 35 KM/H!");
+                        return;
+                    }
+                    GAME.activeMission.speedTimer -= delta;
+                    const descHud = document.getElementById('mission-desc-hud');
+                    if (descHud) {
+                        descHud.textContent = `Speed: ${speedKmh} km/h - Hold for ${Math.ceil(GAME.activeMission.speedTimer)}s`;
+                    }
+                    if (GAME.activeMission.speedTimer <= 0) {
+                        completeMission();
+                    }
+                }
+                return;
+            }
+
+            const dist = playerPos.distanceTo(targetPos);
+            if (dist < 8) {
+                if (GAME.missionStep < GAME.activeMission.steps.length - 1) {
+                    advanceMissionStep();
+                } else {
+                    completeMission();
+                }
+            }
+        }
+
+        function advanceMissionStep() {
+            GAME.missionStep++;
+            gameAudio.playPickup();
+            const step = GAME.activeMission.steps[GAME.missionStep];
+            const descHud = document.getElementById('mission-desc-hud');
+            if (descHud) {
+                descHud.textContent = step.text;
+            }
+            createMissionMarker(step.x, step.z);
+            showToastAlert("Objective Updated!");
+        }
+
+        function completeMission() {
+            showBigAlert("MISSION PASSED", `+₹${GAME.activeMission.reward}`);
+            GAME.player.cash += GAME.activeMission.reward;
+            
+            if (GAME.missionMarker) {
+                scene.remove(GAME.missionMarker);
+                GAME.missionMarker = null;
+            }
+            GAME.activeMission = null;
+            const mBox = document.getElementById('mission-box');
+            if (mBox) mBox.style.display = 'none';
+            updateHUD();
+        }
+
+        function failMission(reason) {
+            showBigAlert("MISSION FAILED", reason);
+            if (GAME.missionMarker) {
+                scene.remove(GAME.missionMarker);
+                GAME.missionMarker = null;
+            }
+            GAME.activeMission = null;
+            const mBox = document.getElementById('mission-box');
+            if (mBox) mBox.style.display = 'none';
+        }
+
+        // --- HUD / USER INTERFACE UPDATES ---
+        function updateHUD() {
+            const healthFill = document.getElementById('health-fill');
+            if (healthFill) healthFill.style.width = `${Math.max(0, GAME.player.health)}%`;
+            const armorFill = document.getElementById('armor-fill');
+            if (armorFill) armorFill.style.width = `${Math.max(0, GAME.player.armor)}%`;
+            const hudCash = document.getElementById('hud-cash');
+            if (hudCash) hudCash.textContent = `₹${GAME.player.cash.toLocaleString()}`;
+
+            const w = GAME.weapons[GAME.player.weapon];
+            const wIcon = document.getElementById('weapon-icon');
+            if (wIcon) wIcon.textContent = w.icon;
+            const wName = document.getElementById('weapon-name');
+            if (wName) wName.textContent = w.name;
+            const wAmmo = document.getElementById('weapon-ammo');
+            if (wAmmo) wAmmo.textContent = w.name === "Fists" ? "--" : GAME.player.ammo[GAME.player.weapon];
+
+            const starElements = document.querySelectorAll('.wanted-star');
+            const starsActive = Math.floor(GAME.player.wantedLevel);
+            starElements.forEach((star, index) => {
+                if (index < starsActive) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function showBigAlert(mainText, subText = "") {
+            const alertBox = document.getElementById('big-alert');
+            if (alertBox) {
+                alertBox.innerHTML = `${mainText}<br><span style="font-size: 1.2rem; color: #aaa; text-shadow:none;">${subText}</span>`;
+                alertBox.classList.add('show');
+                setTimeout(() => {
+                    alertBox.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        function showToastAlert(text) {
+            const toast = document.createElement('div');
+            toast.style.position = 'absolute';
+            toast.style.bottom = '120px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.background = 'rgba(20, 20, 30, 0.9)';
+            toast.style.border = '1px solid #ff8c00';
+            toast.style.padding = '8px 16px';
+            toast.style.borderRadius = '8px';
+            toast.style.fontSize = '0.85rem';
+            toast.style.zIndex = '30';
+            toast.style.pointerEvents = 'none';
+            toast.textContent = text;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s';
+                setTimeout(() => toast.remove(), 500);
+            }, 2000);
+        }
+
+        // --- INPUT LISTENERS & MOBILE JOYSTICKS ---
+        function setupInputListeners() {
+            window.addEventListener('keydown', (e) => {
+                const key = e.key.toLowerCase();
+                GAME.keys[key] = true;
+
+                if (key === '1') { GAME.player.weapon = 0; updateHUD(); }
+                if (key === '2') { GAME.player.weapon = 1; updateHUD(); }
+                if (key === '3') { GAME.player.weapon = 2; updateHUD(); }
+                if (key === '4') { GAME.player.weapon = 3; updateHUD(); }
+                
+                if (key === 'r') {
+                    gameAudio.toggleRadio(true);
+                }
+
+                if (key === 'f' || e.key === 'Enter') {
+                    toggleVehicleEntry();
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                const key = e.key.toLowerCase();
+                GAME.keys[key] = false;
+            });
+
+            window.addEventListener('mousedown', (e) => {
+                if (!GAME.started) return;
+                if (e.target && typeof e.target.closest === 'function') {
+                    if (e.target.closest('#hud-container') || e.target.closest('.back-hub-btn') || e.target.closest('#menu-overlay')) return;
+                }
+                fireWeapon();
+            });
+
+            const canvasContainer = document.getElementById('canvas-container');
+            let isPointerLocked = false;
+            if (canvasContainer) {
+                canvasContainer.addEventListener('click', () => {
+                    if (GAME.started && !GAME.player.inVehicle) {
+                        canvasContainer.requestPointerLock();
+                    }
+                });
+            }
+
+            document.addEventListener('pointerlockchange', () => {
+                const canvasContainer = document.getElementById('canvas-container');
+                isPointerLocked = document.pointerLockElement === canvasContainer;
+            });
+
+            let isMouseDown = false;
+            let prevMouseX = 0, prevMouseY = 0;
+
+            window.addEventListener('mousedown', (e) => {
+                if (e.button === 0) {
+                    isMouseDown = true;
+                    prevMouseX = e.clientX;
+                    prevMouseY = e.clientY;
+                }
+            });
+
+            window.addEventListener('mouseup', (e) => {
+                if (e.button === 0) {
+                    isMouseDown = false;
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (GAME.started) {
+                    let dx = 0, dy = 0;
+                    if (isPointerLocked) {
+                        dx = e.movementX;
+                        dy = e.movementY;
+                    } else if (isMouseDown) {
+                        if (e.target && typeof e.target.closest === 'function') {
+                            if (e.target.closest('#hud-container') || e.target.closest('.back-hub-btn') || e.target.closest('#menu-overlay')) return;
+                        }
+                        dx = e.clientX - prevMouseX;
+                        dy = e.clientY - prevMouseY;
+                        prevMouseX = e.clientX;
+                        prevMouseY = e.clientY;
+                    }
+
+                    CAMERA.yaw += dx * 0.005;
+                    CAMERA.pitch = THREE.MathUtils.clamp(CAMERA.pitch + dy * 0.005, -0.4, 0.9);
+                }
+            });
+
+            let touchStartX = 0, touchStartY = 0;
+            window.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                if (touch.clientX > window.innerWidth / 2) {
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                }
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                const touch = e.touches[0];
+                if (touch.clientX > window.innerWidth / 2) {
+                    const dx = touch.clientX - touchStartX;
+                    const dy = touch.clientY - touchStartY;
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+
+                    CAMERA.yaw += dx * 0.008;
+                    CAMERA.pitch = THREE.MathUtils.clamp(CAMERA.pitch + dy * 0.008, -0.4, 0.9);
+                }
+            });
+
+            if ('ontouchstart' in window) {
+                const mobControls = document.getElementById('mobile-controls');
+                if (mobControls) mobControls.style.display = 'block';
+                setupMobileControls();
+            }
+        }
+
+        function setupMobileControls() {
+            const joystick = document.getElementById('joystick-zone');
+            const knob = document.getElementById('joystick-knob');
+
+            if (!joystick || !knob) return;
+
+            joystick.addEventListener('touchstart', (e) => {
+                GAME.touch.joystickActive = true;
+                const touch = e.touches[0];
+                const rect = joystick.getBoundingClientRect();
+                GAME.touch.joystickStart.x = rect.left + rect.width / 2;
+                GAME.touch.joystickStart.y = rect.top + rect.height / 2;
+            });
+
+            joystick.addEventListener('touchmove', (e) => {
+                if (!GAME.touch.joystickActive) return;
+                const touch = e.touches[0];
+                
+                let dx = touch.clientX - GAME.touch.joystickStart.x;
+                let dy = touch.clientY - GAME.touch.joystickStart.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                
+                const maxDist = 50;
+                if (dist > maxDist) {
+                    dx = (dx / dist) * maxDist;
+                    dy = (dy / dist) * maxDist;
+                    dist = maxDist;
+                }
+
+                knob.style.transform = `translate(${dx}px, ${dy}px)`;
+                
+                GAME.touch.joystickMove.x = dx / maxDist;
+                GAME.touch.joystickMove.y = dy / maxDist;
+                GAME.touch.joystickAngle = Math.atan2(-dx, -dy);
+                GAME.touch.joystickDist = dist / maxDist;
+            });
+
+            joystick.addEventListener('touchend', () => {
+                GAME.touch.joystickActive = false;
+                knob.style.transform = 'translate(0px, 0px)';
+                GAME.touch.joystickMove.x = 0;
+                GAME.touch.joystickMove.y = 0;
+                GAME.touch.joystickDist = 0;
+            });
+
+            const btnEnter = document.getElementById('btn-mobile-enter');
+            if (btnEnter) btnEnter.addEventListener('click', toggleVehicleEntry);
+
+            const btnJump = document.getElementById('btn-mobile-jump');
+            if (btnJump) {
+                btnJump.addEventListener('click', () => {
+                    if (GAME.player.inVehicle) {
+                        GAME.player.currentVehicle.speed *= 0.8;
+                    } else if (!GAME.player.isJumping) {
+                        GAME.player.isJumping = true;
+                        GAME.player.jumpVal = 0.35;
+                    }
+                });
+            }
+
+            const btnWeapon = document.getElementById('btn-mobile-weapon');
+            if (btnWeapon) {
+                btnWeapon.addEventListener('click', () => {
+                    GAME.player.weapon = (GAME.player.weapon + 1) % GAME.weapons.length;
+                    updateHUD();
+                });
+            }
+
+            const btnShoot = document.getElementById('btn-mobile-shoot');
+            if (btnShoot) btnShoot.addEventListener('click', fireWeapon);
+
+            const btnMission = document.getElementById('btn-mobile-mission');
+            if (btnMission) {
+                btnMission.addEventListener('click', () => {
+                    if (!GAME.activeMission) {
+                        const randomId = Math.floor(Math.random() * MISSIONS.length);
+                        startMission(randomId);
+                    } else {
+                        failMission("Cancelled current objective");
+                    }
+                });
+            }
+        }
+
+        // --- VEHICLE PHYSICS & CONTROLS ---
+        function updateVehiclesPhysics(delta) {
+            GAME.vehicles.forEach(veh => {
+                if (veh.damageFlash > 0) {
+                    veh.damageFlash -= delta * 5;
+                    veh.mesh.traverse(child => {
+                        if (child.isMesh && child.material) {
+                            child.material.color.setHex(0xff3333);
+                        }
+                    });
+                } else {
+                    veh.mesh.traverse(child => {
+                        if (child.isMesh && child.material) {
+                            if (veh.type === 'police') child.material.color.setHex(0x111111);
+                            else if (veh.type === 'sports') child.material.color.setHex(0xff2a2a);
+                            else if (veh.type === 'rickshaw') child.material.color.setHex(child.name.includes('roof') ? 0xffb703 : 0x005e1a);
+                        }
+                    });
+                }
+
+                if (veh.type === 'police') {
+                    veh.beacon.timer += delta * 15;
+                    if (Math.floor(veh.beacon.timer) % 2 === 0) {
+                        veh.beacon.red.material.color.setHex(0xff0000);
+                        veh.beacon.blue.material.color.setHex(0x000055);
+                    } else {
+                        veh.beacon.red.material.color.setHex(0x550000);
+                        veh.beacon.blue.material.color.setHex(0x0000ff);
+                    }
+                }
+
+                if (GAME.player.inVehicle && GAME.player.currentVehicle === veh) {
+                    let driveAcc = 0;
+                    if (GAME.keys['w'] || GAME.keys['arrowup']) driveAcc = 1;
+                    if (GAME.keys['s'] || GAME.keys['arrowdown']) driveAcc = -0.5;
+
+                    if (GAME.touch.joystickActive) {
+                        driveAcc = -GAME.touch.joystickMove.y;
+                    }
+
+                    let steerAngle = 0;
+                    if (GAME.keys['a'] || GAME.keys['arrowleft']) steerAngle = 1.3;
+                    if (GAME.keys['d'] || GAME.keys['arrowright']) steerAngle = -1.3;
+
+                    if (GAME.touch.joystickActive) {
+                        steerAngle = -GAME.touch.joystickMove.x * 1.5;
+                    }
+
+                    veh.speed += driveAcc * delta * 15;
+                    veh.speed *= 0.98;
+                    veh.speed = THREE.MathUtils.clamp(veh.speed, -veh.speedMax/3, veh.speedMax);
+
+                    if (Math.abs(veh.speed) > 1) {
+                        const dirFactor = veh.speed > 0 ? 1 : -1;
+                        veh.mesh.rotation.y += steerAngle * delta * dirFactor * 1.5;
+                    }
+
+                    veh.wheelMeshes.forEach(w => {
+                        w.rotation.x += veh.speed * delta * 0.8;
+                    });
+
+                    const dir = new THREE.Vector3(0, 0, 1);
+                    dir.applyQuaternion(veh.mesh.quaternion);
+                    veh.mesh.position.addScaledVector(dir, veh.speed * delta);
+
+                    playerGroup.position.copy(veh.mesh.position);
+                    GAME.player.x = veh.mesh.position.x;
+                    GAME.player.z = veh.mesh.position.z;
+
+                    const speedKmh = Math.floor(Math.abs(veh.speed) * 2.2);
+                    const speedVal = document.getElementById('speed-val');
+                    if (speedVal) speedVal.textContent = speedKmh;
+
+                    checkVehicleCollisions(veh);
+
+                } else if (veh.isPolice) {
+                    const toPlayer = playerGroup.position.clone().sub(veh.mesh.position);
+                    const dist = toPlayer.length();
+
+                    const targetAngle = Math.atan2(toPlayer.x, toPlayer.z);
+                    let diffAngle = targetAngle - veh.mesh.rotation.y;
+                    diffAngle = Math.atan2(Math.sin(diffAngle), Math.cos(diffAngle));
+
+                    veh.mesh.rotation.y += THREE.MathUtils.clamp(diffAngle, -1.8, 1.8) * delta * 2;
+                    
+                    let driveAcc = 1.0;
+                    if (dist < 10) driveAcc = 0.5;
+
+                    veh.speed += driveAcc * delta * 18;
+                    veh.speed *= 0.96;
+                    veh.speed = THREE.MathUtils.clamp(veh.speed, 0, veh.speedMax * 0.85);
+
+                    const dir = new THREE.Vector3(0, 0, 1).applyQuaternion(veh.mesh.quaternion);
+                    veh.mesh.position.addScaledVector(dir, veh.speed * delta);
+
+                    if (dist < 4.5) {
+                        veh.speed *= 0.2;
+                        if (GAME.player.inVehicle) {
+                            GAME.player.currentVehicle.speed *= 0.5;
+                            GAME.player.currentVehicle.health -= 25;
+                            createExplosion(veh.mesh.position.x, 1, veh.mesh.position.z);
+                            showToastAlert("Your vehicle was rammed by police!");
+                        } else {
+                            damagePlayer(35);
+                            createSpark(playerGroup.position.x, 1, playerGroup.position.z, '#ff0000');
+                        }
+                    }
+                }
+            });
+        }
+
+        function checkVehicleCollisions(veh) {
+            const limit = GAME.worldSize / 2 - 10;
+            if (Math.abs(veh.mesh.position.x) > limit) {
+                veh.mesh.position.x = Math.sign(veh.mesh.position.x) * limit;
+                veh.speed *= -0.5;
+                gameAudio.playCarCrash();
+            }
+            if (Math.abs(veh.mesh.position.z) > limit) {
+                veh.mesh.position.z = Math.sign(veh.mesh.position.z) * limit;
+                veh.speed *= -0.5;
+                gameAudio.playCarCrash();
+            }
+
+            const vehBox = new THREE.Box3().setFromObject(veh.mesh);
+            GAME.buildingBoundingBoxes.forEach(bBox => {
+                if (vehBox.intersectsBox(bBox)) {
+                    veh.speed = -veh.speed * 0.5;
+                    const bounceDir = veh.mesh.position.clone().sub(bBox.getCenter(new THREE.Vector3())).normalize();
+                    veh.mesh.position.addScaledVector(bounceDir, 1.2);
+                    gameAudio.playCarCrash();
+                    
+                    if (Math.abs(veh.speed) > 10) {
+                        veh.health -= 15;
+                        if (veh.health <= 0) {
+                            createExplosion(veh.mesh.position.x, 1, veh.mesh.position.z);
+                            toggleVehicleEntry();
+                        }
+                    }
+                }
+            });
+
+            for (let i = GAME.npcs.length - 1; i >= 0; i--) {
+                const npc = GAME.npcs[i];
+                if (veh.mesh.position.distanceTo(npc.mesh.position) < 3.2) {
+                    if (Math.abs(veh.speed) > 4) {
+                        createExplosion(npc.mesh.position.x, 1, npc.mesh.position.z);
+                        scene.remove(npc.mesh);
+                        GAME.npcs.splice(i, 1);
+                        GAME.player.cash += 100;
+                        triggerCrime(4);
+                        showToastAlert("NPC run over! Star Level Up!");
+                    }
+                }
+            }
+
+            for (let i = GAME.cows.length - 1; i >= 0; i--) {
+                const cow = GAME.cows[i];
+                if (veh.mesh.position.distanceTo(cow.mesh.position) < 3.5) {
+                    if (Math.abs(veh.speed) > 5) {
+                        createExplosion(cow.mesh.position.x, 1.2, cow.mesh.position.z);
+                        scene.remove(cow.mesh);
+                        GAME.cows.splice(i, 1);
+                        triggerCrime(3);
+                        showToastAlert("Cow hit! Star level up!");
+                    }
+                }
+            }
+        }
+
+        // --- PLAYER MECHANICS & MOVEMENT ---
+        function updatePlayerMovement(delta) {
+            if (GAME.player.inVehicle) return;
+
+            let mx = 0, mz = 0;
+            
+            if (GAME.keys['w'] || GAME.keys['arrowup']) mz = 1;
+            if (GAME.keys['s'] || GAME.keys['arrowdown']) mz = -1;
+            if (GAME.keys['a'] || GAME.keys['arrowleft']) mx = -1;
+            if (GAME.keys['d'] || GAME.keys['arrowright']) mx = 1;
+
+            if (GAME.touch.joystickActive && GAME.touch.joystickDist > 0) {
+                mx = GAME.touch.joystickMove.x;
+                mz = -GAME.touch.joystickMove.y;
+            }
+
+            const speedMultiplier = GAME.keys['shift'] ? 2.0 : 1.0;
+            const moveSpeed = 10 * speedMultiplier;
+
+            if (mx !== 0 || mz !== 0) {
+                const moveVec = new THREE.Vector3();
+                const camDir = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), CAMERA.yaw).normalize();
+                const camRight = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), CAMERA.yaw).normalize();
+
+                moveVec.addScaledVector(camDir, mz);
+                moveVec.addScaledVector(camRight, mx);
+                moveVec.normalize();
+
+                playerGroup.position.addScaledVector(moveVec, moveSpeed * delta);
+
+                const targetAngle = Math.atan2(moveVec.x, moveVec.z);
+                let diff = targetAngle - playerGroup.rotation.y;
+                diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+                playerGroup.rotation.y += diff * 0.2;
+
+                GAME.player.walkTimer += delta * 15 * speedMultiplier;
+                playerGroup.leftLeg.rotation.x = Math.sin(GAME.player.walkTimer) * 0.6;
+                playerGroup.rightLeg.rotation.x = -Math.sin(GAME.player.walkTimer) * 0.6;
+            } else {
+                playerGroup.leftLeg.rotation.x = 0;
+                playerGroup.rightLeg.rotation.x = 0;
+            }
+
+            if (GAME.keys[' '] && !GAME.player.isJumping) {
+                GAME.player.isJumping = true;
+                GAME.player.jumpVal = 0.38;
+            }
+
+            if (GAME.player.isJumping) {
+                playerGroup.position.y += GAME.player.jumpVal;
+                GAME.player.jumpVal -= 0.7 * delta;
+
+                if (playerGroup.position.y <= 0) {
+                    playerGroup.position.y = 0;
+                    GAME.player.isJumping = false;
+                }
+            }
+
+            GAME.player.x = playerGroup.position.x;
+            GAME.player.z = playerGroup.position.z;
+
+            const bound = GAME.worldSize / 2 - 5;
+            playerGroup.position.x = THREE.MathUtils.clamp(playerGroup.position.x, -bound, bound);
+            playerGroup.position.z = THREE.MathUtils.clamp(playerGroup.position.z, -bound, bound);
+
+            const playerBox = new THREE.Box3().setFromObject(playerGroup);
+            GAME.buildingBoundingBoxes.forEach(bBox => {
+                if (playerBox.intersectsBox(bBox)) {
+                    const pushDir = playerGroup.position.clone().sub(bBox.getCenter(new THREE.Vector3())).normalize();
+                    pushDir.y = 0;
+                    playerGroup.position.addScaledVector(pushDir, 0.4);
+                }
+            });
+
+            updateCameraPosition();
+        }
+
+        function updateCameraPosition() {
+            const targetX = playerGroup.position.x + CAMERA.radius * Math.sin(CAMERA.yaw) * Math.cos(CAMERA.pitch);
+            const targetY = playerGroup.position.y + CAMERA.height + CAMERA.radius * Math.sin(CAMERA.pitch);
+            const targetZ = playerGroup.position.z + CAMERA.radius * Math.cos(CAMERA.yaw) * Math.cos(CAMERA.pitch);
+
+            camera.position.lerp(new THREE.Vector3(targetX, targetY, targetZ), 0.15);
+            camera.lookAt(playerGroup.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+        }
+
+        function updateCameraInVehicle() {
+            const veh = GAME.player.currentVehicle;
+            if (!veh) return;
+
+            const targetX = veh.mesh.position.x + CAMERA.radius * 1.5 * Math.sin(CAMERA.yaw) * Math.cos(CAMERA.pitch);
+            const targetY = veh.mesh.position.y + CAMERA.height * 1.5 + CAMERA.radius * 1.5 * Math.sin(CAMERA.pitch);
+            const targetZ = veh.mesh.position.z + CAMERA.radius * 1.5 * Math.cos(CAMERA.yaw) * Math.cos(CAMERA.pitch);
+
+            camera.position.lerp(new THREE.Vector3(targetX, targetY, targetZ), 0.15);
+            camera.lookAt(veh.mesh.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+        }
+
+        // --- NPC & COW AI UPDATE ---
+        function updateNPCAI(delta) {
+            GAME.npcs.forEach(npc => {
+                npc.walkTimer += delta;
+                
+                const toTarget = new THREE.Vector3(npc.targetX, 0, npc.targetZ).sub(npc.mesh.position);
+                const dist = toTarget.length();
+
+                if (dist < 4 || npc.walkTimer > 12) {
+                    npc.targetX = npc.mesh.position.x + (Math.random() - 0.5) * 60;
+                    npc.targetZ = npc.mesh.position.z + (Math.random() - 0.5) * 60;
+                    npc.walkTimer = 0;
+                }
+
+                const targetAngle = Math.atan2(toTarget.x, toTarget.z);
+                npc.mesh.rotation.y = targetAngle;
+
+                const dir = new THREE.Vector3(0, 0, 1).applyQuaternion(npc.mesh.quaternion);
+                npc.mesh.position.addScaledVector(dir, npc.speed * delta);
+
+                npc.leftLeg.rotation.x = Math.sin(npc.walkTimer * 5) * 0.4;
+                npc.rightLeg.rotation.x = -Math.sin(npc.walkTimer * 5) * 0.4;
+            });
+
+            GAME.cows.forEach(cow => {
+                cow.wanderTimer -= delta;
+                if (cow.wanderTimer <= 0) {
+                    cow.vx = (Math.random() - 0.5) * 1.5;
+                    cow.vz = (Math.random() - 0.5) * 1.5;
+                    cow.wanderTimer = 5 + Math.random() * 8;
+                }
+
+                cow.mesh.position.x += cow.vx * delta;
+                cow.mesh.position.z += cow.vz * delta;
+
+                cow.mesh.rotation.y = Math.atan2(cow.vx, cow.vz);
+
+                const limit = GAME.worldSize/2 - 20;
+                cow.mesh.position.x = THREE.MathUtils.clamp(cow.mesh.position.x, -limit, limit);
+                cow.mesh.position.z = THREE.MathUtils.clamp(cow.mesh.position.z, -limit, limit);
+            });
+        }
+
+        // --- AMBIENT PICKUPS LOOP ---
+        function updatePickups(delta) {
+            GAME.pickups.forEach((pick, index) => {
+                pick.mesh.rotation.y += delta * 2;
+                pick.mesh.position.y = 1.2 + Math.sin(Date.now() * 0.003 + pick.spinVal) * 0.15;
+
+                const dist = playerGroup.position.distanceTo(pick.mesh.position);
+                if (dist < 3.2) {
+                    gameAudio.playPickup();
+                    applyPickupEffect(pick.type);
+                    
+                    scene.remove(pick.mesh);
+                    GAME.pickups.splice(index, 1);
+
+                    setTimeout(() => {
+                        const px = (Math.random() - 0.5) * (GAME.worldSize - 80);
+                        const pz = (Math.random() - 0.5) * (GAME.worldSize - 80);
+                        spawnPickup(px, pz, pick.type);
+                    }, 8000);
+                }
+            });
+        }
+
+        function applyPickupEffect(type) {
+            if (type === 'health') {
+                GAME.player.health = Math.min(100, GAME.player.health + 40);
+                showToastAlert("Health Restored +40%");
+            } else if (type === 'ammo') {
+                GAME.player.ammo[1] += 30;
+                GAME.player.ammo[2] += 60;
+                GAME.player.ammo[3] += 2;
+                showToastAlert("Ammunition Refilled");
+            } else if (type === 'cash') {
+                GAME.player.cash += 800;
+                showToastAlert("Picked up Cash envelope: +₹800");
+            } else if (type === 'star') {
+                GAME.player.wantedLevel = Math.max(0.0, GAME.player.wantedLevel - 1.0);
+                showToastAlert("Police Bribed: Star Level Decayed!");
+                if (GAME.player.wantedLevel < 1) {
+                    gameAudio.playSiren(false);
+                }
+            }
+            updateHUD();
+        }
+
+        // --- ROCKETS & PARTICLES LOOP ---
+        function updateProjectilesAndParticles(delta) {
+            for (let i = GAME.rockets.length - 1; i >= 0; i--) {
+                const r = GAME.rockets[i];
+                r.mesh.position.addScaledVector(r.dir, r.speed * delta);
+                r.life -= delta;
+
+                let collided = false;
+                const rPos = r.mesh.position;
+                if (rPos.y <= 0.2 || r.life <= 0) collided = true;
+
+                GAME.buildingBoundingBoxes.forEach(bBox => {
+                    if (bBox.containsPoint(rPos)) collided = true;
+                });
+
+                if (collided) {
+                    createExplosion(rPos.x, rPos.y, rPos.z);
+                    dealRadiusDamage(rPos, 15.0);
+                    
+                    scene.remove(r.mesh);
+                    GAME.rockets.splice(i, 1);
+                }
+            }
+
+            for (let i = GAME.particles.length - 1; i >= 0; i--) {
+                const p = GAME.particles[i];
+                p.mesh.position.x += p.vx * delta;
+                p.mesh.position.y += p.vy * delta;
+                p.mesh.position.z += p.vz * delta;
+
+                p.vy -= 9.8 * delta;
+                p.life -= delta * p.decay;
+                p.mesh.scale.setScalar(p.life);
+
+                if (p.life <= 0) {
+                    scene.remove(p.mesh);
+                    GAME.particles.splice(i, 1);
+                }
+            }
+        }
+
+        function dealRadiusDamage(blastCenter, radius) {
+            const distPl = playerGroup.position.distanceTo(blastCenter);
+            if (distPl < radius) {
+                const factor = 1 - (distPl / radius);
+                damagePlayer(Math.floor(factor * 80));
+            }
+
+            for (let i = GAME.npcs.length - 1; i >= 0; i--) {
+                const npc = GAME.npcs[i];
+                const distNpc = npc.mesh.position.distanceTo(blastCenter);
+                if (distNpc < radius) {
+                    createExplosion(npc.mesh.position.x, 1, npc.mesh.position.z);
+                    scene.remove(npc.mesh);
+                    GAME.npcs.splice(i, 1);
+                    triggerCrime(3);
+                }
+            }
+
+            for (let i = GAME.vehicles.length - 1; i >= 0; i--) {
+                const veh = GAME.vehicles[i];
+                const distVeh = veh.mesh.position.distanceTo(blastCenter);
+                if (distVeh < radius) {
+                    const factor = 1 - (distVeh / radius);
+                    veh.health -= factor * 220;
+                    if (veh.health <= 0) {
+                        createExplosion(veh.mesh.position.x, 1, veh.mesh.position.z);
+                        if (GAME.player.inVehicle && GAME.player.currentVehicle === veh) wasted();
+                        scene.remove(veh.mesh);
+                        GAME.vehicles.splice(i, 1);
+                        triggerCrime(5);
+                    }
+                }
+            }
+        }
+
+        // --- HEALTH DAMAGE ARREST LOGIC ---
+        function damagePlayer(amount) {
+            if (GAME.player.armor > 0) {
+                GAME.player.armor -= Math.floor(amount * 0.6);
+                GAME.player.health -= Math.floor(amount * 0.4);
+            } else {
+                GAME.player.health -= amount;
+            }
+
+            updateHUD();
+            if (GAME.player.health <= 0) {
+                wasted();
+            }
+        }
+
+        function wasted() {
+            GAME.started = false;
+            gameAudio.stopAll();
+            document.exitPointerLock();
+
+            const endScreen = document.getElementById('end-screen');
+            if (endScreen) endScreen.style.display = 'flex';
+            const endTitle = document.getElementById('end-title');
+            if (endTitle) {
+                endTitle.className = 'end-title title-wasted';
+                endTitle.textContent = "WASTED";
+            }
+            const endSub = document.getElementById('end-subtitle');
+            if (endSub) endSub.textContent = "You died in the streets of Mumbai.";
+        }
+
+        function busted() {
+            GAME.started = false;
+            gameAudio.stopAll();
+            document.exitPointerLock();
+
+            const endScreen = document.getElementById('end-screen');
+            if (endScreen) endScreen.style.display = 'flex';
+            const endTitle = document.getElementById('end-title');
+            if (endTitle) {
+                endTitle.className = 'end-title title-busted';
+                endTitle.textContent = "BUSTED";
+            }
+            const endSub = document.getElementById('end-subtitle');
+            if (endSub) endSub.textContent = "The Delhi/Mumbai police squad captured you.";
+        }
+
+        // --- MINIMAP CANVAS RENDERER ---
+        function drawMinimap() {
+            const canvas = document.getElementById('minimap-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = 140;
+            canvas.height = 140;
+
+            const cx = 70;
+            const cy = 70;
+            
+            ctx.fillStyle = '#05050f';
+            ctx.fillRect(0, 0, 140, 140);
+
+            const scale = 0.3;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.lineWidth = 1;
+            
+            const gridSpacing = 80;
+            const px = GAME.player.x;
+            const pz = GAME.player.z;
+
+            const igX = cx + (0 - px) * scale;
+            const igY = cy + (0 - pz) * scale;
+            ctx.fillStyle = '#ff8c00';
+            ctx.beginPath();
+            ctx.arc(igX, igY, 8, 0, Math.PI*2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#22223b';
+            ctx.lineWidth = 14;
+            for (let rPos = -300; rPos < 300; rPos += gridSpacing) {
+                const nsX = cx + (rPos - px) * scale;
+                ctx.beginPath();
+                ctx.moveTo(nsX, 0);
+                ctx.lineTo(nsX, 140);
+                ctx.stroke();
+
+                const ewY = cy + (rPos - pz) * scale;
+                ctx.beginPath();
+                ctx.moveTo(0, ewY);
+                ctx.lineTo(140, ewY);
+                ctx.stroke();
+            }
+
+            if (GAME.activeMission) {
+                const step = GAME.activeMission.steps[GAME.missionStep];
+                const markerX = cx + (step.x - px) * scale;
+                const markerY = cy + (step.z - pz) * scale;
+                
+                ctx.fillStyle = '#00ffff';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00ffff';
+                ctx.beginPath();
+                ctx.arc(markerX, markerY, 5, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            GAME.vehicles.forEach(veh => {
+                const vx = cx + (veh.mesh.position.x - px) * scale;
+                const vy = cy + (veh.mesh.position.z - pz) * scale;
+                
+                if (vx > 0 && vx < 140 && vy > 0 && vy < 140) {
+                    ctx.fillStyle = veh.isPolice ? '#0000ff' : '#00ff00';
+                    ctx.fillRect(vx - 2, vy - 2, 4, 4);
+                }
+            });
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            
+            ctx.rotate(-CAMERA.yaw);
+            ctx.fillStyle = '#ffd700';
+            ctx.beginPath();
+            ctx.moveTo(0, -6);
+            ctx.lineTo(-4, 4);
+            ctx.lineTo(4, 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // --- CORE GAME LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+
+            if (GAME.started) {
+                updatePlayerMovement(delta);
+                updateVehiclesPhysics(delta);
+
+                if (GAME.player.inVehicle) {
+                    updateCameraInVehicle();
+                }
+
+                updateProjectilesAndParticles(delta);
+                updateNPCAI(delta);
+                updatePickups(delta);
+                updateMissionLogic(delta);
+
+                if (GAME.player.wantedLevel > 0) {
+                    if (GAME.player.wantedCooldown > 0) {
+                        GAME.player.wantedCooldown -= delta * 100;
+                    } else {
+                        GAME.player.wantedLevel = Math.max(0.0, GAME.player.wantedLevel - delta * 0.05);
+                        if (GAME.player.wantedLevel < 1.0) {
+                            gameAudio.playSiren(false);
+                        }
+                        updateHUD();
+                    }
+                }
+
+                drawMinimap();
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // --- BUTTON BINDINGS & RESET GAME ---
+        function startGame() {
+            gameAudio.init();
+            
+            const overlay = document.getElementById('menu-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+
+            const hud = document.getElementById('hud-container');
+            if (hud) hud.style.display = 'block';
+
+            GAME.started = true;
+            resetPlayerPosition();
+            showBigAlert("INDIAN THEFT AUTO", "Explore the City!");
+        }
+
+        function onWindowResize() {
+            if (camera) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+            }
+            if (renderer) {
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        // Run engine setup and bind buttons when the DOM content is parsed and ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initEngine();
+            animate();
+
+            // Safe button click event listners bindings
+            const startBtn = document.getElementById('start-game-btn');
+            if (startBtn) startBtn.addEventListener('click', startGame);
+
+            const toggleControlsBtn = document.getElementById('toggle-controls-btn');
+            if (toggleControlsBtn) {
+                toggleControlsBtn.addEventListener('click', () => {
+                    const section = document.getElementById('controls-section');
+                    if (section) {
+                        section.style.display = section.style.display === 'none' ? 'block' : 'none';
+                    }
+                });
+            }
+
+            const restartBtn = document.getElementById('restart-btn');
+            if (restartBtn) {
+                restartBtn.addEventListener('click', () => {
+                    const endScreen = document.getElementById('end-screen');
+                    if (endScreen) endScreen.style.display = 'none';
+                    GAME.vehicles.forEach(v => scene.remove(v.mesh));
+                    GAME.vehicles = [];
+                    GAME.npcs.forEach(n => scene.remove(n.mesh));
+                    GAME.npcs = [];
+                    GAME.rockets.forEach(r => scene.remove(r.mesh));
+                    GAME.rockets = [];
+                    GAME.particles.forEach(p => scene.remove(p.mesh));
+                    GAME.particles = [];
+
+                    buildCity();
+                    startGame();
+                });
+            }
+
+            const radioPrevBtn = document.getElementById('radio-prev');
+            if (radioPrevBtn) radioPrevBtn.addEventListener('click', () => gameAudio.toggleRadio(false));
+
+            const radioNextBtn = document.getElementById('radio-next');
+            if (radioNextBtn) radioNextBtn.addEventListener('click', () => gameAudio.toggleRadio(true));
+        });
+    </script>
+</body>
+</html>

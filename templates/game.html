@@ -1,0 +1,807 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Snake - GameHub</title>
+    <!-- Google Fonts: Plus Jakarta Sans for minimal styling -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for clean icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --bg-dark-accent: #0f172a;
+            --card-bg: #141c2f;
+            --card-border: rgba(255, 255, 255, 0.02);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(59, 130, 246, 0.05) 0%, transparent 25%),
+                radial-gradient(circle at 90% 85%, rgba(99, 102, 241, 0.05) 0%, transparent 25%);
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background: rgba(11, 15, 25, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.25rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-main);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            color: #3b82f6;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.25s ease;
+        }
+        
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        /* Game wrapper (Claymorphic) */
+        .game-wrapper {
+            margin: 1.5rem auto;
+            max-width: 1100px;
+            width: calc(100vw - 3rem);
+            height: calc(100vh - 120px);
+            padding: 2rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            box-shadow: 
+                12px 12px 30px rgba(0, 0, 0, 0.45), 
+                inset -8px -8px 16px rgba(0, 0, 0, 0.4), 
+                inset 8px 8px 16px rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .game-header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .score-pill {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            padding: 0.45rem 1.15rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 
+                2px 2px 6px rgba(0, 0, 0, 0.2),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.35),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.05);
+        }
+
+        .difficulty-selector {
+            display: flex;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 0.25rem;
+            border-radius: 14px;
+            gap: 0.25rem;
+            box-shadow: 
+                inset -3px -3px 6px rgba(0, 0, 0, 0.3),
+                inset 3px 3px 6px rgba(255, 255, 255, 0.02);
+        }
+
+        .diff-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.45rem 0.95rem;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .diff-btn:hover {
+            color: var(--text-main);
+        }
+
+        .diff-btn.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 
+                2px 2px 6px rgba(0, 0, 0, 0.2),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.35),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Canvas Arena Container */
+        .canvas-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        #game-canvas {
+            display: block;
+            background-color: #0f131f;
+        }
+
+        /* Overlays (Game Over) */
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1.25rem;
+            z-index: 10;
+        }
+
+        .game-over h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #f43f5e;
+            letter-spacing: -0.5px;
+        }
+
+        .game-over p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        .restart-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.7rem 1.6rem;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.25s ease;
+            box-shadow: 
+                4px 4px 10px rgba(0, 0, 0, 0.3),
+                inset -3px -3px 6px rgba(0, 0, 0, 0.4),
+                inset 3px 3px 6px rgba(255, 255, 255, 0.2);
+        }
+
+        .restart-btn:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        /* Controls Layout */
+        .game-controls {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .control-badge {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-main);
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: 
+                1px 1px 3px rgba(0, 0, 0, 0.15),
+                inset -1px -1px 2px rgba(0, 0, 0, 0.2),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.03);
+        }
+
+        .control-desc {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fas fa-cubes"></i> GameHub
+            </a>
+            <div class="nav-links">
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'profile' %}">Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Game Wrapper -->
+    <div class="game-wrapper">
+        <div class="game-header">
+            <h1>Snake Game</h1>
+            <div class="difficulty-selector">
+                <button class="diff-btn active" data-speed="160" id="btn-beginner">Beginner</button>
+                <button class="diff-btn" data-speed="100" id="btn-master">Master</button>
+                <button class="diff-btn" data-speed="60" id="btn-pro">Pro</button>
+            </div>
+            <div class="score-pill">Score: <span id="score">0</span></div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="game-canvas" width="480" height="480"></canvas>
+            
+            <div class="game-over" id="game-over">
+                <h2>Game Over</h2>
+                <p>Your final score: <span id="final-score">0</span></p>
+                <button class="restart-btn" id="restart-btn">Play Again</button>
+            </div>
+        </div>
+
+        <div class="game-controls">
+            <div class="control-badge"><i class="fas fa-keyboard"></i> Arrow Keys / WASD</div>
+            <div class="control-desc">Feed on organic berries (green sprout) to grow in length & thickness. Avoid traps (purple spike) & borders!</div>
+        </div>
+    </div>
+
+    <!-- Gameplay Engine Scripts -->
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const tileSize = 20;
+
+        // Calculate dynamic square canvas size fitting screen viewport limits
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Calculate max boundaries: max-width 85vw and max-height 56vh
+        const maxW = viewportWidth * 0.85;
+        const maxH = (viewportHeight - 180) * 0.72; // Deduct navbar and footer margins
+        const rawSize = Math.min(maxW, maxH, 500); // capped at a neat size of 500px
+
+        // Round to nearest integer multiple of tileSize
+        const fitSize = Math.max(300, Math.floor(rawSize / tileSize) * tileSize);
+
+        canvas.width = fitSize;
+        canvas.height = fitSize;
+        canvas.style.width = fitSize + 'px';
+        canvas.style.height = fitSize + 'px';
+
+        const rows = canvas.height / tileSize;
+        const cols = canvas.width / tileSize;
+
+        // Game speed variables (fixed logic update interval in ms)
+        let baseSpeed = 160;
+        let gameSpeed = 160;
+        let lastTickTime = performance.now();
+        let gameTimerId = null;
+
+        // Snake states
+        let snake = [{x: 6 * tileSize, y: 8 * tileSize}];
+        let prevSnake = [{x: 6 * tileSize, y: 8 * tileSize}];
+        let food = {x: 12 * tileSize, y: 12 * tileSize};
+        let trap = {x: -100, y: -100}; // Trap position state
+        
+        let velocityX = 0;
+        let velocityY = 0;
+        let nextVelocityX = 0;
+        let nextVelocityY = 0;
+        let gameOver = false;
+        let score = 0;
+
+        // Organic squish physics parameters
+        let squishX = 1;
+        let squishY = 1;
+        let eatPulse = 0;
+
+        // Spawns food at random grid cell
+        function spawnFood() {
+            let valid = false;
+            let tempFood = {};
+            while (!valid) {
+                tempFood = {
+                    x: Math.floor(Math.random() * cols) * tileSize,
+                    y: Math.floor(Math.random() * rows) * tileSize
+                };
+                // Ensure food does not spawn inside the snake, and doesn't overlap the trap
+                valid = !snake.some(segment => segment.x === tempFood.x && segment.y === tempFood.y) &&
+                        !(tempFood.x === trap.x && tempFood.y === trap.y);
+            }
+            food = tempFood;
+        }
+
+        // Spawns trap at random grid cell
+        function spawnTrap() {
+            let valid = false;
+            let tempTrap = {};
+            while (!valid) {
+                tempTrap = {
+                    x: Math.floor(Math.random() * cols) * tileSize,
+                    y: Math.floor(Math.random() * rows) * tileSize
+                };
+                // Ensure trap does not spawn inside the snake, and doesn't overlap the food
+                valid = !snake.some(segment => segment.x === tempTrap.x && segment.y === tempTrap.y) &&
+                        !(tempTrap.x === food.x && tempTrap.y === food.y);
+            }
+            trap = tempTrap;
+        }
+
+        // Handle game logic updates (run inside fixed tick interval)
+        function updateLogic() {
+            if (gameOver) return;
+
+            // Commit pending steering actions
+            velocityX = nextVelocityX;
+            velocityY = nextVelocityY;
+
+            // Do not advance if the snake is stationary
+            if (velocityX === 0 && velocityY === 0) {
+                lastTickTime = performance.now();
+                return;
+            }
+
+            // Copy current position to previous for rendering interpolation
+            prevSnake = snake.map(seg => ({...seg}));
+
+            const head = {
+                x: snake[0].x + velocityX * tileSize,
+                y: snake[0].y + velocityY * tileSize
+            };
+
+            // Border hit checks
+            if (head.x < 0 || head.x >= canvas.width || head.y < 0 || head.y >= canvas.height) {
+                gameOver = true;
+                handleGameOver();
+                return;
+            }
+
+            // Self intersection checks
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    gameOver = true;
+                    handleGameOver();
+                    return;
+                }
+            }
+
+            // Trap obstacle collision check (game over)
+            if (head.x === trap.x && head.y === trap.y) {
+                gameOver = true;
+                handleGameOver();
+                return;
+            }
+
+            // Grow or slide forward
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                eatPulse = 1.0; // Trigger food eat animation pulse
+                // Squish factor: elongates in moving direction
+                squishX = 1.35;
+                squishY = 0.65;
+                
+                // Spawn new food
+                spawnFood();
+                // Spawn new trap surprisingly: only after score is 3 or more, and only with a 60% probability
+                if (score >= 3 && Math.random() < 0.6) {
+                    spawnTrap();
+                } else {
+                    trap = {x: -100, y: -100};
+                }
+                
+                // Speed up slightly based on current baseSpeed settings
+                // Beginner (160ms base): drops to 120ms max (slow, controlled)
+                // Master (100ms base): drops to 70ms max (medium)
+                // Pro (60ms base): drops to 45ms max (fast, controlled speed)
+                const cap = baseSpeed === 160 ? 120 : (baseSpeed === 100 ? 70 : 45);
+                const decrement = baseSpeed === 160 ? 4 : (baseSpeed === 100 ? 5 : 6);
+                if (score % 4 === 0 && gameSpeed > cap) {
+                    gameSpeed -= decrement;
+                    clearInterval(gameTimerId);
+                    gameTimerId = setInterval(updateLogic, gameSpeed);
+                }
+            } else {
+                snake.pop();
+            }
+
+            // Expand prevSnake array size to match snake array size to facilitate smooth tail drawing
+            while (prevSnake.length < snake.length) {
+                prevSnake.push({...prevSnake[prevSnake.length - 1]});
+            }
+
+            lastTickTime = performance.now();
+        }
+
+        // Show Game Over UI screen
+        function handleGameOver() {
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('game-over').style.display = 'flex';
+        }
+
+        // Utility: dynamically blends RGB color values based on segment positions
+        function getBodyColor(index, length) {
+            const ratio = index / Math.max(1, length);
+            // Blend from royal blue (#3b82f6) to soft violet (#8b5cf6)
+            const r = Math.round(59 + (139 - 59) * ratio);
+            const g = Math.round(130 + (92 - 130) * ratio);
+            const b = Math.round(246 + (246 - 246) * ratio);
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Interpolated coordinate finder helper
+        function getInterpolatedCoords(index, t) {
+            const curr = snake[index];
+            const prev = prevSnake[index] || curr;
+            return {
+                x: prev.x + (curr.x - prev.x) * t,
+                y: prev.y + (curr.y - prev.y) * t
+            };
+        }
+
+        // Organic rendering routine
+        function draw(timestamp) {
+            // Decouple grid updates frame fraction t: [0, 1]
+            const elapsed = performance.now() - lastTickTime;
+            let t = Math.max(0, Math.min(1, elapsed / gameSpeed));
+
+            // Static state safeguard
+            if (velocityX === 0 && velocityY === 0) {
+                t = 0;
+            }
+
+            // Clear screen
+            ctx.fillStyle = '#0f131f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw very soft grid pattern
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= rows; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, i * tileSize);
+                ctx.lineTo(canvas.width, i * tileSize);
+                ctx.stroke();
+            }
+            for (let j = 0; j <= cols; j++) {
+                ctx.beginPath();
+                ctx.moveTo(j * tileSize, 0);
+                ctx.lineTo(j * tileSize, canvas.height);
+                ctx.stroke();
+            }
+
+            // Decay squishy animation factors over frames
+            squishX += (1 - squishX) * 0.12;
+            squishY += (1 - squishY) * 0.12;
+            eatPulse += (0 - eatPulse) * 0.08;
+
+            // 1. Draw Food Blob (Organic, pulsating and glowing, with green leaf sprout)
+            const timeParam = timestamp * 0.0055;
+            const foodPulse = 1.0 + Math.sin(timeParam) * 0.12 + (eatPulse * 0.25);
+            const foodSize = (tileSize / 2.2) * foodPulse;
+
+            ctx.save();
+            ctx.shadowColor = '#f43f5e';
+            ctx.shadowBlur = 14 * foodPulse;
+            
+            ctx.beginPath();
+            const foodCenter = { x: food.x + tileSize/2, y: food.y + tileSize/2 };
+            ctx.arc(foodCenter.x, foodCenter.y, foodSize, 0, Math.PI * 2);
+            
+            const foodGrad = ctx.createRadialGradient(
+                foodCenter.x - foodSize/4, foodCenter.y - foodSize/4, 1,
+                foodCenter.x, foodCenter.y, foodSize
+            );
+            foodGrad.addColorStop(0, '#ff4b72');
+            foodGrad.addColorStop(1, '#e11d48');
+            ctx.fillStyle = foodGrad;
+            ctx.fill();
+
+            // Draw green sprout on food
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.ellipse(foodCenter.x + 2, foodCenter.y - foodSize + 1, 3, 5, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#10b981'; // green sprout
+            ctx.fill();
+            ctx.restore();
+
+            // 1.1 Draw Trap Obstacle (Looks similar to food, but with a warning purple spike)
+            if (trap.x !== -100) {
+                const trapPulse = 1.0 + Math.cos(timeParam * 1.15) * 0.1;
+                const trapSize = (tileSize / 2.2) * trapPulse;
+                const trapCenter = { x: trap.x + tileSize/2, y: trap.y + tileSize/2 };
+
+                ctx.save();
+                ctx.shadowColor = '#dc2626'; // dark warning glow
+                ctx.shadowBlur = 10 * trapPulse;
+                
+                ctx.beginPath();
+                ctx.arc(trapCenter.x, trapCenter.y, trapSize, 0, Math.PI * 2);
+                
+                const trapGrad = ctx.createRadialGradient(
+                    trapCenter.x - trapSize/4, trapCenter.y - trapSize/4, 1,
+                    trapCenter.x, trapCenter.y, trapSize
+                );
+                trapGrad.addColorStop(0, '#ef4444');
+                trapGrad.addColorStop(1, '#991b1b'); // darker crimson
+                ctx.fillStyle = trapGrad;
+                ctx.fill();
+
+                // Draw sharp purple warning spike on trap
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.moveTo(trapCenter.x, trapCenter.y - trapSize);
+                ctx.lineTo(trapCenter.x - 3, trapCenter.y - trapSize - 4);
+                ctx.lineTo(trapCenter.x + 3, trapCenter.y - trapSize - 4);
+                ctx.closePath();
+                ctx.fillStyle = '#a855f7'; // warning purple spike
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 2. Draw Snake (Smooth, organic flowing lines with dynamic Z width scaling by score)
+            if (snake.length > 0) {
+                // Base width grows thicker as snake eats more food (score increases)
+                const baseWidthLimit = Math.min(tileSize * 0.6, score * 0.8);
+                const baseWidth = (tileSize * 1.1) + baseWidthLimit;
+
+                // Loop backward to connect paths smoothly, starting from tail to head
+                for (let i = snake.length - 1; i > 0; i--) {
+                    const nextPoint = getInterpolatedCoords(i, t);
+                    const prevPoint = getInterpolatedCoords(i - 1, t);
+
+                    ctx.beginPath();
+                    ctx.moveTo(nextPoint.x + tileSize/2, nextPoint.y + tileSize/2);
+                    ctx.lineTo(prevPoint.x + tileSize/2, prevPoint.y + tileSize/2);
+
+                    // Dynamic tapering: thick body, thin tail
+                    const taperWidth = baseWidth * (1.0 - (i / snake.length) * 0.45);
+                    ctx.lineWidth = taperWidth;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+
+                    ctx.strokeStyle = getBodyColor(i, snake.length);
+                    ctx.stroke();
+                }
+
+                // Draw Head with Squishy organic volume scale transformation
+                const headPoint = getInterpolatedCoords(0, t);
+                const headCenterX = headPoint.x + tileSize / 2;
+                const headCenterY = headPoint.y + tileSize / 2;
+
+                ctx.save();
+                ctx.translate(headCenterX, headCenterY);
+
+                // Align head transform axis to direction angle
+                const currentAngle = Math.atan2(velocityY, velocityX);
+                if (velocityX !== 0 || velocityY !== 0) {
+                    ctx.rotate(currentAngle);
+                }
+
+                // Apply squish scale factor
+                ctx.scale(squishX, squishY);
+
+                // Soft shadow for head
+                ctx.shadowColor = '#3b82f6';
+                ctx.shadowBlur = 10;
+
+                ctx.beginPath();
+                ctx.arc(0, 0, (baseWidth * 0.88) / 2, 0, Math.PI * 2);
+                
+                const headGrad = ctx.createRadialGradient(-3, -3, 1, 0, 0, baseWidth/2);
+                headGrad.addColorStop(0, '#60a5fa');
+                headGrad.addColorStop(1, '#2563eb');
+                ctx.fillStyle = headGrad;
+                ctx.fill();
+                ctx.restore(); // Restores scale context
+
+                // Draw look-ahead organic eyes
+                ctx.save();
+                ctx.translate(headCenterX, headCenterY);
+                if (velocityX !== 0 || velocityY !== 0) {
+                    ctx.rotate(currentAngle);
+                }
+
+                const eyeRadius = baseWidth * 0.16;
+                const eyeOffsetSide = baseWidth * 0.22;
+                const eyeOffsetFront = baseWidth * 0.15;
+
+                // Eye locations relative to head translation & angle
+                const leftEye = { x: eyeOffsetFront, y: -eyeOffsetSide };
+                const rightEye = { x: eyeOffsetFront, y: eyeOffsetSide };
+
+                // Draw Left and Right Scleras
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(leftEye.x, leftEye.y, eyeRadius, 0, Math.PI * 2);
+                ctx.arc(rightEye.x, rightEye.y, eyeRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw looking ahead black pupils
+                ctx.fillStyle = '#0f172a';
+                ctx.beginPath();
+                // Push pupils forward in look-ahead direction
+                ctx.arc(leftEye.x + 1.2, leftEye.y, eyeRadius * 0.52, 0, Math.PI * 2);
+                ctx.arc(rightEye.x + 1.2, rightEye.y, eyeRadius * 0.52, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Sync score indicator text
+            document.getElementById('score').textContent = score;
+
+            // Schedule next frame rendering loop
+            requestAnimationFrame(draw);
+        }
+
+        // Change snake travel directions
+        function changeDirection(e) {
+            let key = e.key.toLowerCase();
+            
+            // Standard arrow mappings
+            if (e.key === 'ArrowUp') key = 'w';
+            if (e.key === 'ArrowDown') key = 's';
+            if (e.key === 'ArrowLeft') key = 'a';
+            if (e.key === 'ArrowRight') key = 'd';
+
+            // Upward key
+            if (key === 'w' && velocityY !== 1) {
+                nextVelocityX = 0;
+                nextVelocityY = -1;
+                // Add squish impulse on keypress turn
+                if (velocityY !== -1) {
+                    squishX = 0.75;
+                    squishY = 1.25;
+                }
+            }
+            // Downward key
+            else if (key === 's' && velocityY !== -1) {
+                nextVelocityX = 0;
+                nextVelocityY = 1;
+                if (velocityY !== 1) {
+                    squishX = 0.75;
+                    squishY = 1.25;
+                }
+            }
+            // Leftward key
+            else if (key === 'a' && velocityX !== 1) {
+                nextVelocityX = -1;
+                nextVelocityY = 0;
+                if (velocityX !== -1) {
+                    squishX = 1.25;
+                    squishY = 0.75;
+                }
+            }
+            // Rightward key
+            else if (key === 'd' && velocityX !== -1) {
+                nextVelocityX = 1;
+                nextVelocityY = 0;
+                if (velocityX !== 1) {
+                    squishX = 1.25;
+                    squishY = 0.75;
+                }
+            }
+        }
+
+        // Restart logic
+        function restartGame() {
+            snake = [{x: 6 * tileSize, y: 8 * tileSize}];
+            prevSnake = [{x: 6 * tileSize, y: 8 * tileSize}];
+            velocityX = 0;
+            velocityY = 0;
+            nextVelocityX = 0;
+            nextVelocityY = 0;
+            gameOver = false;
+            score = 0;
+            gameSpeed = baseSpeed;
+            document.getElementById('game-over').style.display = 'none';
+
+            spawnFood();
+            trap = {x: -100, y: -100}; // Clear trap at restart
+
+            clearInterval(gameTimerId);
+            gameTimerId = setInterval(updateLogic, gameSpeed);
+        }
+
+        // Difficulty selector handler
+        const diffButtons = document.querySelectorAll('.diff-btn');
+        diffButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                diffButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                baseSpeed = parseInt(btn.getAttribute('data-speed'));
+                restartGame();
+            });
+        });
+
+        // Start initialization
+        spawnFood();
+        trap = {x: -100, y: -100}; // No trap at start
+        document.addEventListener('keydown', changeDirection);
+        document.getElementById('restart-btn').addEventListener('click', restartGame);
+        
+        // Start core logic scheduler and frame render scheduler
+        gameTimerId = setInterval(updateLogic, gameSpeed);
+        requestAnimationFrame(draw);
+    </script>
+</body>
+</html>

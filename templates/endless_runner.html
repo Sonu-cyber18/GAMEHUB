@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Endless Runner - Claymorphic Edition</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --text-muted: #64748b;
+
+            /* Runner Neon Clay Colors */
+            --primary-clay: #8b5cf6; /* violet */
+            --orange-clay: #f97316;
+            --cyan-clay: #06b6d4;
+            --crimson-clay: #ef4444;
+            --green-clay: #10b981;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Navbar Style */
+        .navbar {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 1.1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .navbar-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar .logo i {
+            color: var(--cyan-clay);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.25s ease;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        /* Main Game Wrapper - Claymorphic */
+        .game-wrapper {
+            margin: 1.5rem auto;
+            max-width: 1100px;
+            width: calc(100vw - 3rem);
+            min-height: calc(100vh - 120px);
+            padding: 2.25rem;
+            background: #111827;
+            border-radius: 32px;
+            box-shadow: 
+                16px 16px 40px rgba(0, 0, 0, 0.55), 
+                inset -10px -10px 20px rgba(0, 0, 0, 0.4), 
+                inset 10px 10px 20px rgba(255, 255, 255, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1rem;
+        }
+
+        .game-header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* HUD Stats Pill */
+        .active-turn-pill {
+            background: #1e293b;
+            padding: 0.5rem 1.25rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 
+                4px 4px 10px rgba(0,0,0,0.35),
+                inset -3px -3px 6px rgba(0, 0, 0, 0.4), 
+                inset 3px 3px 6px rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        /* Play Layout Arena */
+        .play-arena {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 2.5rem;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 868px) {
+            .play-arena {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Canvas Frame Container - Inset Clay Box */
+        .canvas-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            margin: 0 auto;
+            background: #111827;
+            border-radius: 28px;
+            padding: 10px;
+            box-shadow: 
+                14px 14px 30px rgba(0, 0, 0, 0.5), 
+                inset -8px -8px 16px rgba(0, 0, 0, 0.4), 
+                inset 8px 8px 16px rgba(255, 255, 255, 0.04);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+            background-color: #0b132b;
+            box-shadow: inset 4px 4px 12px rgba(0,0,0,0.7);
+        }
+
+        /* Side stats container */
+        .side-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 
+                6px 6px 16px rgba(0, 0, 0, 0.35),
+                inset -5px -5px 10px rgba(0, 0, 0, 0.4),
+                inset 5px 5px 10px rgba(255, 255, 255, 0.03);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.55rem;
+            color: var(--cyan-clay);
+            font-weight: 800;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Game Controls Card - Claymorphic */
+        .controls-card {
+            background: var(--card-bg);
+            border-radius: 28px;
+            padding: 1.75rem;
+            box-shadow: 
+                8px 8px 20px rgba(0, 0, 0, 0.45),
+                inset -6px -6px 12px rgba(0, 0, 0, 0.45),
+                inset 6px 6px 12px rgba(255, 255, 255, 0.03);
+            text-align: left;
+        }
+
+        .controls-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-instructions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .key-badge {
+            background: #0b0f19;
+            color: #ffffff;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-weight: 700;
+            box-shadow: 
+                inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+                2px 2px 4px rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Buttons & Actions */
+        .actions-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: none;
+            color: #ffffff;
+            padding: 0.85rem 1.85rem;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 16px;
+            transition: all 0.25s ease;
+            box-shadow: 
+                6px 6px 15px rgba(0,0,0,0.4),
+                inset -4px -4px 8px rgba(0,0,0,0.5),
+                inset 4px 4px 8px rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-1px);
+            box-shadow: 
+                8px 8px 18px rgba(0,0,0,0.45),
+                inset -4px -4px 8px rgba(0,0,0,0.4),
+                inset 4px 4px 8px rgba(255,255,255,0.07);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 
+                2px 2px 6px rgba(0,0,0,0.5),
+                inset 4px 4px 8px rgba(0,0,0,0.6);
+        }
+
+        .btn-primary {
+            background: var(--cyan-clay);
+            color: #0b0f19;
+            box-shadow: 
+                6px 6px 15px rgba(6, 182, 212, 0.15),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.35),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #0891b2;
+            box-shadow: 
+                8px 8px 18px rgba(6, 182, 212, 0.35),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.3),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Message scrolling log */
+        .message-box {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 18px;
+            padding: 1.1rem;
+            height: 90px;
+            overflow-y: auto;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.65);
+        }
+
+        .message-box p {
+            margin: 0;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .message-box p.highlight-msg {
+            color: #ffffff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url 'home' %}" class="logo"><i class="fa-solid fa-gamepad"></i> GameHub</a>
+            <div class="nav-links">
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'profile' %}">Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="game-wrapper">
+        <div class="game-header">
+            <h1>Endless Runner</h1>
+            <div class="active-turn-pill" id="level-display-pill">
+                <i class="fa-solid fa-gauge-high"></i> Speed: <span id="current-speed-level" style="color: var(--cyan-clay); font-weight: 800;">Lvl 1</span>
+            </div>
+        </div>
+
+        <div class="play-arena">
+            <div class="board-container">
+                <div class="canvas-container">
+                    <canvas id="runner-canvas"></canvas>
+                </div>
+            </div>
+
+            <div class="side-container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Current Score</div>
+                        <div class="stat-value" id="current-score">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">High Score</div>
+                        <div class="stat-value" id="high-score">0</div>
+                    </div>
+                </div>
+
+                <div class="controls-card">
+                    <h3><i class="fa-solid fa-circle-info"></i> Controls</h3>
+                    <div class="control-instructions">
+                        <div class="control-row">
+                            <span>Jump / Start Game</span>
+                            <span class="key-badge">Space</span>
+                        </div>
+                        <div class="control-row">
+                            <span>Duck / Slide</span>
+                            <span class="key-badge">↓ (Down Arrow)</span>
+                        </div>
+                        <div class="control-row">
+                            <span>Mobile Jump</span>
+                            <span class="key-badge">Tap Upper Canvas</span>
+                        </div>
+                        <div class="control-row">
+                            <span>Mobile Slide</span>
+                            <span class="key-badge">Tap Lower Canvas</span>
+                        </div>
+                    </div>
+
+                    <div class="actions-row">
+                        <button class="btn btn-primary" id="start-btn"><i class="fa-solid fa-play"></i> Run Game</button>
+                        <button class="btn" id="restart-btn" style="display: none;"><i class="fa-solid fa-rotate-left"></i> Run Again</button>
+                    </div>
+                </div>
+
+                <div class="message-box" id="message-box">
+                    <p class="highlight-msg">Press Run Game or SPACE to begin dashing!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('runner-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Dynamic coordinate bounds setting
+        function initCanvasDimensions() {
+            // standard internal rendering dimensions
+            canvas.width = 800;
+            canvas.height = 450;
+        }
+
+        // Configuration
+        const physics = {
+            gravity: 0.62,
+            jumpForce: -13.2,
+            doubleJumpForce: -10.5
+        };
+
+        // Game state variables
+        const state = {
+            gameActive: false,
+            gameOver: false,
+            score: 0,
+            highScore: parseInt(localStorage.getItem('runnerHighScore')) || 0,
+            speed: 5.5,
+            level: 1,
+            distanceToNextLvl: 500,
+            colorIndex: 0,
+            levelAlertTimer: 0
+        };
+
+        // Themes palettes mapping
+        const themes = [
+            { sky: '#070a13', ground: '#1e293b', runner: '#8b5cf6', runnerEye: '#ffffff', obstacle: '#ef4444', accent: '#a78bfa' },
+            { sky: '#061a15', ground: '#0f382a', runner: '#10b981', runnerEye: '#000000', obstacle: '#f59e0b', accent: '#34d399' },
+            { sky: '#181005', ground: '#451a03', runner: '#f97316', runnerEye: '#ffffff', obstacle: '#3b82f6', accent: '#fb923c' },
+            { sky: '#1a051d', ground: '#3b0764', runner: '#ec4899', runnerEye: '#000000', obstacle: '#10b981', accent: '#f472b6' }
+        ];
+
+        // Object classes
+        class Runner {
+            constructor() {
+                this.width = 44;
+                this.height = 56;
+                this.x = 80;
+                this.y = canvas.height - this.height - 40;
+                this.vy = 0;
+                this.jumpCount = 0;
+                this.isDucking = false;
+                this.duckHeight = 32;
+                this.normalHeight = 56;
+                this.pulseFactor = 0;
+                this.runCycle = 0;
+            }
+
+            jump() {
+                if (this.jumpCount < 2) {
+                    if (this.jumpCount === 0) {
+                        this.vy = physics.jumpForce;
+                        spawnJumpParticles(this.x + this.width / 2, this.y + this.height);
+                    } else {
+                        // Double jump
+                        this.vy = physics.doubleJumpForce;
+                        spawnJumpParticles(this.x + this.width / 2, this.y + this.height, true);
+                    }
+                    this.jumpCount++;
+                    this.isDucking = false;
+                    addMessage('Jump!');
+                }
+            }
+
+            duck(isDucking) {
+                if (this.jumpCount > 0) return; // No ducking in mid-air
+                
+                this.isDucking = isDucking;
+                if (isDucking) {
+                    this.height = this.duckHeight;
+                } else {
+                    this.height = this.normalHeight;
+                }
+                this.y = canvas.height - this.height - 40;
+            }
+
+            update() {
+                this.vy += physics.gravity;
+                this.y += this.vy;
+
+                const groundY = canvas.height - this.height - 40;
+                if (this.y >= groundY) {
+                    this.y = groundY;
+                    this.vy = 0;
+                    this.jumpCount = 0;
+                }
+
+                // Claymorphic pulse stretch cycle
+                this.runCycle += 0.15;
+                this.pulseFactor = Math.sin(this.runCycle) * 0.05;
+
+                // Dust particle generation
+                if (this.y === groundY && state.gameActive && !this.isDucking && Math.random() < 0.35) {
+                    particles.push(new DustParticle(this.x + 5, canvas.height - 42));
+                }
+                if (this.y === groundY && state.gameActive && this.isDucking && Math.random() < 0.6) {
+                    particles.push(new DustParticle(this.x + 5, canvas.height - 42, true));
+                }
+            }
+
+            draw() {
+                ctx.save();
+                const theme = themes[state.colorIndex];
+
+                // Claymorphic inflatable styling (stretch width/height dynamically)
+                let stretchW = this.width;
+                let stretchH = this.height;
+
+                if (this.vy < 0) {
+                    // Jumping stretching
+                    stretchW = this.width * 0.92;
+                    stretchH = this.height * 1.08;
+                } else if (this.vy > 0 && this.y < canvas.height - this.height - 40) {
+                    // Falling stretching
+                    stretchW = this.width * 1.04;
+                    stretchH = this.height * 0.96;
+                } else if (!this.isDucking) {
+                    // Running squish cycle
+                    stretchW = this.width * (1 + this.pulseFactor);
+                    stretchH = this.height * (1 - this.pulseFactor);
+                }
+
+                const drawY = this.y + (this.height - stretchH);
+
+                // Main body shadow base
+                ctx.shadowColor = 'rgba(0,0,0,0.55)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 4;
+                ctx.shadowOffsetY = 6;
+
+                // Squishy cube body drawing
+                ctx.fillStyle = theme.runner;
+                ctx.beginPath();
+                ctx.roundRect(this.x, drawY, stretchW, stretchH, 12);
+                ctx.fill();
+
+                // Remove shadows for inset highlights
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+
+                // Soft white clay highlight (top-left inset glow)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.roundRect(this.x + 2, drawY + 2, stretchW - 4, stretchH - 4, 10);
+                ctx.stroke();
+
+                // Dark inset shadow (bottom-right glow)
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.35)';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.roundRect(this.x + 3.5, drawY + 3.5, stretchW - 7, stretchH - 7, 8);
+                ctx.stroke();
+
+                // Eye highlights
+                ctx.fillStyle = theme.runnerEye;
+                const eyeRadius = 4.5;
+                const eyeY = drawY + stretchH * (this.isDucking ? 0.35 : 0.28);
+                const eyeOffsetX = this.isDucking ? 6 : 8;
+
+                // Left Eye
+                ctx.beginPath();
+                ctx.arc(this.x + stretchW - 20, eyeY, eyeRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Right Eye
+                ctx.beginPath();
+                ctx.arc(this.x + stretchW - 10, eyeY, eyeRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Blink overlay occasionally
+                if (Math.floor(Date.now() / 2000) % 2 === 0 && Math.floor(Date.now() / 100) % 15 === 0) {
+                    ctx.fillStyle = theme.runner;
+                    ctx.fillRect(this.x + stretchW - 22, eyeY - 5, 15, 6);
+                }
+
+                ctx.restore();
+            }
+        }
+
+        class Obstacle {
+            constructor(type) {
+                this.type = type; // 'low', 'high', 'wide'
+                this.x = canvas.width + 50;
+                this.passed = false;
+
+                if (type === 'low') {
+                    // Small pyramid spiky cactus
+                    this.width = 30;
+                    this.height = 36;
+                    this.y = canvas.height - this.height - 40;
+                } else if (type === 'wide') {
+                    // Wider spiky obstacle group
+                    this.width = 54;
+                    this.height = 34;
+                    this.y = canvas.height - this.height - 40;
+                } else if (type === 'high') {
+                    // Flying bat style obstacle
+                    this.width = 34;
+                    this.height = 26;
+                    this.y = canvas.height - 115; // requires ducking or double jumping
+                }
+            }
+
+            update() {
+                this.x -= state.speed;
+            }
+
+            draw() {
+                ctx.save();
+                const theme = themes[state.colorIndex];
+
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 4;
+
+                ctx.fillStyle = theme.obstacle;
+
+                if (this.type === 'low') {
+                    // Spiky triangular clay prism
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y + this.height);
+                    ctx.lineTo(this.x + this.width / 2, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    // Inset highlight
+                    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + 3, this.y + this.height - 2);
+                    ctx.lineTo(this.x + this.width / 2, this.y + 4);
+                    ctx.lineTo(this.x + this.width - 3, this.y + this.height - 2);
+                    ctx.stroke();
+                } 
+                else if (this.type === 'wide') {
+                    // Double clay peaks
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y + this.height);
+                    ctx.lineTo(this.x + this.width * 0.28, this.y);
+                    ctx.lineTo(this.x + this.width * 0.5, this.y + this.height * 0.5);
+                    ctx.lineTo(this.x + this.width * 0.72, this.y);
+                    ctx.lineTo(this.x + this.width, this.y + this.height);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + 2, this.y + this.height - 2);
+                    ctx.lineTo(this.x + this.width * 0.28, this.y + 3);
+                    ctx.lineTo(this.x + this.width * 0.5, this.y + this.height * 0.5 + 2);
+                    ctx.lineTo(this.x + this.width * 0.72, this.y + 3);
+                    ctx.lineTo(this.x + this.width - 2, this.y + this.height - 2);
+                    ctx.stroke();
+                }
+                else if (this.type === 'high') {
+                    // Floating clay bat orb
+                    ctx.beginPath();
+                    ctx.roundRect(this.x, this.y, this.width, this.height, 8);
+                    ctx.fill();
+
+                    // Left & Right little wing spikes
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y + this.height * 0.5);
+                    ctx.lineTo(this.x - 8, this.y - 2);
+                    ctx.lineTo(this.x, this.y + 4);
+                    ctx.moveTo(this.x + this.width, this.y + this.height * 0.5);
+                    ctx.lineTo(this.x + this.width + 8, this.y - 2);
+                    ctx.lineTo(this.x + this.width, this.y + 4);
+                    ctx.fill();
+
+                    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(this.x + 2, this.y + 2, this.width - 4, this.height - 4, 6);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Particle System Classes
+        class DustParticle {
+            constructor(x, y, isDuckTrail = false) {
+                this.x = x;
+                this.y = y;
+                this.radius = Math.random() * 3 + (isDuckTrail ? 3 : 1.5);
+                this.vx = -state.speed * (Math.random() * 0.3 + 0.5);
+                this.vy = -Math.random() * 1.5;
+                this.alpha = 0.65;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= 0.02;
+            }
+            draw() {
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class SparkParticle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.radius = Math.random() * 2.5 + 1.5;
+                this.vx = (Math.random() - 0.5) * 6;
+                this.vy = (Math.random() - 0.5) * 6;
+                this.color = color;
+                this.alpha = 1;
+                this.gravity = 0.15;
+            }
+            update() {
+                this.x += this.vx;
+                this.vy += this.gravity;
+                this.y += this.vy;
+                this.alpha -= 0.035;
+            }
+            draw() {
+                ctx.save();
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Environment Background layers for deep Parallax scrolling
+        const bgLayers = {
+            stars: [],
+            hills: []
+        };
+
+        function initBackgrounds() {
+            bgLayers.stars = [];
+            bgLayers.hills = [];
+            // Generate star coordinates
+            for (let i = 0; i < 40; i++) {
+                bgLayers.stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * 200,
+                    size: Math.random() * 1.8 + 0.4
+                });
+            }
+            // Generate distant rolling clay hills
+            bgLayers.hills = [
+                { x: 0, w: 320, h: 110, color: 'rgba(255, 255, 255, 0.015)' },
+                { x: 260, w: 400, h: 140, color: 'rgba(255, 255, 255, 0.02)' },
+                { x: 580, w: 340, h: 90, color: 'rgba(255, 255, 255, 0.015)' }
+            ];
+        }
+
+        // Entities arrays
+        let runner;
+        let obstacles = [];
+        let particles = [];
+        let obstacleSpawnTimer = 0;
+
+        // Message updates
+        function addMessage(text) {
+            const box = document.getElementById('message-box');
+            const p = document.createElement('p');
+            p.textContent = text;
+            if (text.includes('⚠️') || text.includes('💥') || text.includes('LEVEL UP')) {
+                p.className = 'highlight-msg';
+            }
+            box.insertBefore(p, box.firstChild);
+            if (box.children.length > 5) {
+                box.removeChild(box.lastChild);
+            }
+        }
+
+        function spawnJumpParticles(x, y, isDouble = false) {
+            const color = isDouble ? 'var(--cyan-clay)' : 'var(--accent-green)';
+            for (let i = 0; i < 10; i++) {
+                particles.push(new SparkParticle(x, y, color));
+            }
+        }
+
+        function triggerDeathExplosion() {
+            const color = themes[state.colorIndex].runner;
+            for (let i = 0; i < 30; i++) {
+                particles.push(new SparkParticle(runner.x + runner.width / 2, runner.y + runner.height / 2, color));
+            }
+            // Add red spark fragments
+            for (let i = 0; i < 15; i++) {
+                particles.push(new SparkParticle(runner.x + runner.width / 2, runner.y + runner.height / 2, 'var(--crimson-clay)'));
+            }
+        }
+
+        // Setup Match resets
+        function resetGame() {
+            runner = new Runner();
+            obstacles = [];
+            particles = [];
+            state.score = 0;
+            state.speed = 5.5;
+            state.level = 1;
+            state.colorIndex = 0;
+            state.gameOver = false;
+            state.levelAlertTimer = 0;
+            obstacleSpawnTimer = 0;
+
+            document.getElementById('current-score').textContent = '0';
+            document.getElementById('current-speed-level').textContent = 'Lvl 1';
+            document.getElementById('restart-btn').style.display = 'none';
+
+            addMessage('🏃 Runner started. Dash, slide, and survive!');
+        }
+
+        function startGame() {
+            initCanvasDimensions();
+            initBackgrounds();
+            resetGame();
+            
+            state.gameActive = true;
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('restart-btn').style.display = 'inline-block';
+            
+            gameLoop();
+        }
+
+        // Check level scaling changes
+        function checkLevelUps() {
+            if (state.score >= state.level * state.distanceToNextLvl) {
+                state.level++;
+                state.speed += 0.85; // Speed increment
+                state.colorIndex = (state.colorIndex + 1) % themes.length;
+                state.levelAlertTimer = 100; // frames to alert
+
+                document.getElementById('current-speed-level').textContent = `Lvl ${state.level}`;
+                addMessage(`🚀 LEVEL UP! Speed increased to level ${state.level}!`);
+            }
+        }
+
+        // Main Draw Pipeline
+        function drawScene() {
+            const theme = themes[state.colorIndex];
+
+            // 1. Draw Sky background
+            ctx.fillStyle = theme.sky;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Draw Stars Layer
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            bgLayers.stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+                // Star scrolling slow parallax
+                if (state.gameActive) {
+                    star.x -= 0.15;
+                    if (star.x < -10) star.x = canvas.width + 10;
+                }
+            });
+
+            // 3. Draw Hills Layer (Parallax layer 1)
+            bgLayers.hills.forEach(hill => {
+                ctx.fillStyle = hill.color;
+                ctx.beginPath();
+                ctx.arc(hill.x + hill.w/2, canvas.height - 40 + hill.h/2, hill.w/2, Math.PI, 0);
+                ctx.fill();
+                
+                if (state.gameActive) {
+                    hill.x -= 0.5;
+                    if (hill.x + hill.w < 0) {
+                        hill.x = canvas.width + Math.random() * 50;
+                    }
+                }
+            });
+
+            // 4. Draw Floor Platform line (Clay styling track)
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,0.45)';
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetY = -3;
+            
+            ctx.fillStyle = theme.ground;
+            ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+
+            // Light track boundary line
+            ctx.strokeStyle = theme.accent;
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 40);
+            ctx.lineTo(canvas.width, canvas.height - 40);
+            ctx.stroke();
+            ctx.restore();
+
+            // 5. Update and Draw Particles
+            particles = particles.filter(p => {
+                p.update();
+                p.draw();
+                return p.alpha > 0;
+            });
+
+            // 6. Update and Draw Obstacles
+            obstacles.forEach(obs => {
+                if (state.gameActive) {
+                    obs.update();
+                }
+                obs.draw();
+
+                // Check collision bounds
+                if (checkCollision(runner, obs)) {
+                    handleGameOver();
+                }
+
+                // Check pass score
+                if (!obs.passed && obs.x < runner.x) {
+                    obs.passed = true;
+                    state.score += 50;
+                    document.getElementById('current-score').textContent = state.score;
+                    checkLevelUps();
+                }
+            });
+
+            // Clean offscreen obstacles
+            obstacles = obstacles.filter(obs => obs.x + obs.width > -20);
+
+            // 7. Draw Character
+            if (!state.gameOver) {
+                runner.update();
+                runner.draw();
+            }
+
+            // 8. Draw Alert center banner if level alert active
+            if (state.levelAlertTimer > 0) {
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(1, state.levelAlertTimer / 30)})`;
+                ctx.font = '800 24px "Plus Jakarta Sans"';
+                ctx.textAlign = 'center';
+                ctx.fillText(`SPEED LEVEL UP: LVL ${state.level}`, canvas.width / 2, canvas.height / 2 - 30);
+                state.levelAlertTimer--;
+                ctx.restore();
+            }
+
+            // 9. Draw Game Over Overlay
+            if (state.gameOver) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(11, 15, 25, 0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.font = '800 32px "Plus Jakarta Sans"';
+                ctx.fillStyle = 'var(--crimson-clay)';
+                ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
+
+                ctx.font = '600 16px "Plus Jakarta Sans"';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText('Press SPACE or click Run Again to restart', canvas.width / 2, canvas.height / 2 + 20);
+                ctx.restore();
+            }
+        }
+
+        // AABB Collision Detection
+        function checkCollision(player, obstacle) {
+            // Shrink hitboxes slightly to compensate round shapes
+            const px = player.x + 4;
+            const py = player.y + 4;
+            const pw = player.width - 8;
+            const ph = player.height - 8;
+
+            const ox = obstacle.x + 3;
+            const oy = obstacle.y + 3;
+            const ow = obstacle.width - 6;
+            const oh = obstacle.height - 6;
+
+            return (
+                px < ox + ow &&
+                px + pw > ox &&
+                py < oy + oh &&
+                py + ph > oy
+            );
+        }
+
+        function handleGameOver() {
+            state.gameActive = false;
+            state.gameOver = true;
+            triggerDeathExplosion();
+            addMessage(`💥 CRASH! Game Over! Final Score: ${state.score}`);
+
+            // Save high scores
+            if (state.score > state.highScore) {
+                state.highScore = state.score;
+                localStorage.setItem('runnerHighScore', state.highScore.toString());
+                document.getElementById('high-score').textContent = state.highScore;
+                addMessage('🏆 New Personal High Score!');
+            }
+
+            document.getElementById('restart-btn').style.display = 'inline-block';
+        }
+
+        // Spawning cycle manager
+        function updateSpawning() {
+            obstacleSpawnTimer--;
+            if (obstacleSpawnTimer <= 0) {
+                // Determine obstacle type dynamically
+                const rand = Math.random();
+                let type = 'low';
+                if (rand < 0.35 && state.level >= 2) {
+                    type = 'high'; // flying obstacles
+                } else if (rand >= 0.35 && rand < 0.65) {
+                    type = 'wide'; // double spikers
+                }
+                
+                obstacles.push(new Obstacle(type));
+                
+                // Spawning frequency gets tighter as speed increases
+                obstacleSpawnTimer = Math.max(50, 140 - state.speed * 8 + Math.random() * 40);
+            }
+        }
+
+        // Main game cycle
+        function gameLoop() {
+            if (!state.gameActive && !state.gameOver) return;
+
+            if (state.gameActive) {
+                // Increment passive distance score
+                state.score += 1;
+                document.getElementById('current-score').textContent = state.score;
+                checkLevelUps();
+
+                updateSpawning();
+            }
+
+            drawScene();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Setup Controls Events
+        function setupControls() {
+            // Keyboard Listeners
+            window.addEventListener('keydown', e => {
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (!state.gameActive && !state.gameOver) {
+                        startGame();
+                    } else if (state.gameOver) {
+                        startGame();
+                    } else {
+                        runner.jump();
+                    }
+                }
+                if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+                    e.preventDefault();
+                    if (state.gameActive && !state.gameOver) {
+                        runner.duck(true);
+                    }
+                }
+            });
+
+            window.addEventListener('keyup', e => {
+                if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+                    if (state.gameActive && !state.gameOver) {
+                        runner.duck(false);
+                    }
+                }
+            });
+
+            // Tap/Mouse Listeners (Mobile Friendly split screen clicks)
+            canvas.addEventListener('mousedown', e => {
+                if (!state.gameActive) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const clickY = e.clientY - rect.top;
+                const canvasHeightRatio = rect.height;
+
+                // Click upper half: jump, lower half: slide/duck
+                if (clickY < canvasHeightRatio / 2) {
+                    runner.jump();
+                } else {
+                    runner.duck(true);
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                if (state.gameActive && !state.gameOver) {
+                    runner.duck(false);
+                }
+            });
+
+            canvas.addEventListener('touchstart', e => {
+                if (!state.gameActive) return;
+                e.preventDefault();
+
+                const rect = canvas.getBoundingClientRect();
+                const touchY = e.touches[0].clientY - rect.top;
+                const canvasHeightRatio = rect.height;
+
+                if (touchY < canvasHeightRatio / 2) {
+                    runner.jump();
+                } else {
+                    runner.duck(true);
+                }
+            });
+
+            canvas.addEventListener('touchend', () => {
+                if (state.gameActive && !state.gameOver) {
+                    runner.duck(false);
+                }
+            });
+
+            // Connect Buttons
+            document.getElementById('start-btn').onclick = startGame;
+            document.getElementById('restart-btn').onclick = startGame;
+
+            // Load high score
+            document.getElementById('high-score').textContent = state.highScore;
+        }
+
+        window.onload = () => {
+            initCanvasDimensions();
+            setupControls();
+            
+            // Draw default starting screen
+            ctx.fillStyle = '#070a13';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+            ctx.strokeStyle = '#a78bfa';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height - 40);
+            ctx.lineTo(canvas.width, canvas.height - 40);
+            ctx.stroke();
+        };
+    </script>
+</body>
+</html>

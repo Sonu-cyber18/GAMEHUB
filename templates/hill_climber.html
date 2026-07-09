@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hill Climber - Physics Racing Game</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --text-muted: #64748b;
+
+            /* Retro Clay Colors */
+            --green-clay: #10b981;
+            --brown-clay: #78350f;
+            --sky-blue: #0ea5e9;
+            --orange-clay: #f97316;
+            --crimson-clay: #ef4444;
+            --amber-clay: #f59e0b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Navbar Style */
+        .navbar {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 1.1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .navbar-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar .logo i {
+            color: var(--orange-clay);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.25s ease;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        /* Main Game Wrapper - Claymorphic */
+        .game-wrapper {
+            margin: 1.5rem auto;
+            max-width: 1100px;
+            width: calc(100vw - 3rem);
+            min-height: calc(100vh - 120px);
+            padding: 2.25rem;
+            background: #111827;
+            border-radius: 32px;
+            box-shadow: 
+                16px 16px 40px rgba(0, 0, 0, 0.55), 
+                inset -10px -10px 20px rgba(0, 0, 0, 0.4), 
+                inset 10px 10px 20px rgba(255, 255, 255, 0.04);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 1rem;
+        }
+
+        .game-header h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Fuel Gauge Indicator HUD */
+        .fuel-pill {
+            background: #1e293b;
+            padding: 0.4rem 1.15rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 
+                4px 4px 10px rgba(0,0,0,0.35),
+                inset -3px -3px 6px rgba(0, 0, 0, 0.4), 
+                inset 3px 3px 6px rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .fuel-bar-outer {
+            width: 90px;
+            height: 9px;
+            background: #090c12;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 1px 1px 2px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .fuel-bar-inner {
+            height: 100%;
+            background: var(--orange-clay);
+            width: 100%;
+            border-radius: 6px;
+            box-shadow: inset -2px 0 4px rgba(0,0,0,0.3);
+            transition: width 0.1s linear;
+        }
+
+        /* Play Layout Arena */
+        .play-arena {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 2.5rem;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 868px) {
+            .play-arena {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Canvas Frame Container - Inset Clay Box */
+        .canvas-container {
+            width: 100%;
+            aspect-ratio: 16/9;
+            margin: 0 auto;
+            background: #111827;
+            border-radius: 28px;
+            padding: 10px;
+            box-shadow: 
+                14px 14px 30px rgba(0, 0, 0, 0.5), 
+                inset -8px -8px 16px rgba(0, 0, 0, 0.4), 
+                inset 8px 8px 16px rgba(255, 255, 255, 0.04);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+            background-color: #0b132b;
+            box-shadow: inset 4px 4px 12px rgba(0,0,0,0.7);
+        }
+
+        /* Side stats container */
+        .side-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.25rem;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 
+                6px 6px 16px rgba(0, 0, 0, 0.35),
+                inset -5px -5px 10px rgba(0, 0, 0, 0.4),
+                inset 5px 5px 10px rgba(255, 255, 255, 0.03);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 1.55rem;
+            color: var(--orange-clay);
+            font-weight: 800;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Game Controls Card - Claymorphic */
+        .controls-card {
+            background: var(--card-bg);
+            border-radius: 28px;
+            padding: 1.75rem;
+            box-shadow: 
+                8px 8px 20px rgba(0, 0, 0, 0.45),
+                inset -6px -6px 12px rgba(0, 0, 0, 0.45),
+                inset 6px 6px 12px rgba(255, 255, 255, 0.03);
+            text-align: left;
+        }
+
+        .controls-card h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .control-instructions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .key-badge {
+            background: #0b0f19;
+            color: #ffffff;
+            padding: 0.35rem 0.75rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-weight: 700;
+            box-shadow: 
+                inset -2px -2px 4px rgba(0, 0, 0, 0.5),
+                2px 2px 4px rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Pedals on-screen layout (mobile friendly/touch visual keys) */
+        .pedal-overlay {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 1rem;
+            gap: 1rem;
+        }
+
+        .pedal-btn {
+            flex: 1;
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 
+                6px 6px 15px rgba(0,0,0,0.45),
+                inset -4px -4px 8px rgba(0,0,0,0.5),
+                inset 4px 4px 8px rgba(255,255,255,0.04);
+            user-select: none;
+            transition: all 0.15s ease;
+        }
+
+        .pedal-btn:active {
+            transform: scale(0.97);
+            box-shadow: 
+                2px 2px 5px rgba(0,0,0,0.5),
+                inset 3px 3px 6px rgba(0,0,0,0.6);
+        }
+
+        /* Actions row */
+        .actions-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: none;
+            color: #ffffff;
+            padding: 0.85rem 1.85rem;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 16px;
+            transition: all 0.25s ease;
+            box-shadow: 
+                6px 6px 15px rgba(0,0,0,0.4),
+                inset -4px -4px 8px rgba(0,0,0,0.5),
+                inset 4px 4px 8px rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 
+                2px 2px 6px rgba(0,0,0,0.5),
+                inset 4px 4px 8px rgba(0,0,0,0.6);
+        }
+
+        .btn-primary {
+            background: var(--orange-clay);
+            color: #0b0f19;
+            box-shadow: 
+                6px 6px 15px rgba(249, 115, 22, 0.15),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.35),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #ea580c;
+            box-shadow: 
+                8px 8px 18px rgba(249, 115, 22, 0.35),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.3),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Message Log */
+        .message-box {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 18px;
+            padding: 1.1rem;
+            height: 90px;
+            overflow-y: auto;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.65);
+        }
+
+        .message-box p {
+            margin: 0;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .message-box p.highlight-msg {
+            color: #ffffff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url 'home' %}" class="logo"><i class="fa-solid fa-gamepad"></i> GameHub</a>
+            <div class="nav-links">
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'profile' %}">Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="game-wrapper">
+        <div class="game-header">
+            <h1>Hill Climber</h1>
+            <div class="fuel-pill">
+                <i class="fa-solid fa-gas-pump" style="color: var(--orange-clay);"></i> FUEL
+                <div class="fuel-bar-outer">
+                    <div class="fuel-bar-inner" id="fuel-bar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="play-arena">
+            <div class="board-container">
+                <div class="canvas-container">
+                    <canvas id="hillCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="side-container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Coins Collected</div>
+                        <div class="stat-value" id="current-coins">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Distance Run</div>
+                        <div class="stat-value" id="current-distance">0 m</div>
+                    </div>
+                </div>
+
+                <div class="controls-card">
+                    <h3><i class="fa-solid fa-circle-info"></i> Controls</h3>
+                    <div class="control-instructions">
+                        <div class="control-row">
+                            <span>Accelerate / Gas / Tilt Right</span>
+                            <span class="key-badge">→ (Right Arrow) / D</span>
+                        </div>
+                        <div class="control-row">
+                            <span>Brake / Reverse / Tilt Left</span>
+                            <span class="key-badge">← (Left Arrow) / A</span>
+                        </div>
+                    </div>
+
+                    <div class="pedal-overlay">
+                        <div class="pedal-btn" id="brake-pedal" style="color: var(--crimson-clay);">BRAKE / TILT ↺</div>
+                        <div class="pedal-btn" id="gas-pedal" style="color: var(--green-clay);">GAS / TILT ↻</div>
+                    </div>
+
+                    <div class="actions-row">
+                        <button class="btn btn-primary" id="start-btn"><i class="fa-solid fa-play"></i> Start Engine</button>
+                        <button class="btn" id="restart-btn" style="display: none;"><i class="fa-solid fa-rotate-left"></i> Restart Climb</button>
+                    </div>
+                </div>
+
+                <div class="message-box" id="message-box">
+                    <p class="highlight-msg">Press Start Engine or Arrow keys to begin your climb!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('hillCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function initDimensions() {
+            canvas.width = 800;
+            canvas.height = 450;
+        }
+
+        // Camera tracker for horizontal and vertical scrolling
+        const camera = {
+            x: 0,
+            y: 0
+        };
+
+        // Mathematical Hill profile terrain coordinate equation
+        function getTerrainHeight(x) {
+            const baseline = canvas.height * 0.72;
+            
+            // Combination of sin/cos waves for rolling clay hills
+            const wave1 = Math.sin(x * 0.0035) * 85;
+            const wave2 = Math.cos(x * 0.009) * 45;
+            const wave3 = Math.sin(x * 0.02) * 12;
+            
+            // Add gradual incline profile as distance scales (going uphill, so subtract Y value!)
+            const incline = (x * 0.08);
+
+            return baseline - (wave1 + wave2 + wave3) - incline;
+        }
+
+        // Game Configuration
+        const config = {
+            maxFuel: 100,
+            fuelConsumption: 0.065
+        };
+
+        // Game State Variables
+        const state = {
+            gameActive: false,
+            gameOver: false,
+            score: 0,
+            distance: 0,
+            coins: 0,
+            fuel: 100,
+            carX: 180, // Screen rendering coordinate
+            worldX: 180, // Actual physical progress tracker x coordinate
+            carY: 200,
+            vx: 0,
+            vy: 0,
+            angle: 0,
+            angularVelocity: 0,
+            engineSound: null,
+            deathReason: ''
+        };
+
+        // Inputs trackers
+        const keys = {
+            ArrowRight: false,
+            ArrowLeft: false,
+            d: false,
+            a: false,
+            gasPedal: false,
+            brakePedal: false
+        };
+
+        // Particles collection
+        let particles = [];
+        let collectibles = []; // coins & fuel canisters
+
+        class DustParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = Math.random() * 3 + 1.5;
+                this.vx = -state.vx * 0.4 + (Math.random() - 0.5) * 1.5;
+                this.vy = -Math.random() * 1.5;
+                this.alpha = 0.65;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= 0.022;
+            }
+            draw() {
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class SparkParticle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.radius = Math.random() * 2.2 + 1.2;
+                this.vx = (Math.random() - 0.5) * 6;
+                this.vy = (Math.random() - 0.5) * 6;
+                this.color = color;
+                this.alpha = 1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= 0.03;
+            }
+            draw() {
+                ctx.save();
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Message board log helper
+        function addMessage(text) {
+            const box = document.getElementById('message-box');
+            const p = document.createElement('p');
+            p.textContent = text;
+            if (text.includes('⛽') || text.includes('🪙') || text.includes('💥') || text.includes('⚠️')) {
+                p.className = 'highlight-msg';
+            }
+            box.insertBefore(p, box.firstChild);
+            if (box.children.length > 5) {
+                box.removeChild(box.lastChild);
+            }
+        }
+
+        // Spawn items (coins & canisters) along the hills path
+        function updateCollectibles() {
+            // Keep active queue populated ahead of the player view
+            const spawnHorizon = state.worldX + 900;
+            
+            // Clean old past elements
+            collectibles = collectibles.filter(item => item.x > state.worldX - 300);
+
+            // Add new element if queue empty/sparse
+            if (collectibles.length < 12) {
+                const lastX = collectibles.length > 0 ? collectibles[collectibles.length - 1].x : state.worldX;
+                const nextX = lastX + 160 + Math.random() * 140;
+
+                if (Math.random() < 0.22) {
+                    // Fuel canister
+                    collectibles.push({
+                        type: 'fuel',
+                        x: nextX,
+                        y: getTerrainHeight(nextX) - 34,
+                        width: 20,
+                        height: 26,
+                        collected: false
+                    });
+                } else {
+                    // Coin line pattern
+                    for (let i = 0; i < 3; i++) {
+                        const coinX = nextX + i * 28;
+                        collectibles.push({
+                            type: 'coin',
+                            x: coinX,
+                            y: getTerrainHeight(coinX) - 22,
+                            width: 16,
+                            height: 16,
+                            collected: false
+                        });
+                    }
+                }
+            }
+        }
+
+        // Check if item is picked up
+        function checkCollisions() {
+            collectibles.forEach(item => {
+                if (!item.collected) {
+                    // Coordinates projection from world coordinate spacing to screen coordinate mapping
+                    const screenX = item.x - camera.x;
+                    const screenY = item.y - camera.y;
+                    const dx = screenX - state.carX;
+                    const dy = screenY - (state.carY - camera.y);
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if (dist < 40) {
+                        item.collected = true;
+                        if (item.type === 'fuel') {
+                            state.fuel = Math.min(config.maxFuel, state.fuel + 40);
+                            addMessage('⛽ Refilled Fuel canisters! (+40% Fuel)');
+                            triggerCollectSparks(screenX, screenY, 'var(--orange-clay)');
+                        } else {
+                            state.coins++;
+                            document.getElementById('current-coins').textContent = state.coins;
+                            addMessage('🪙 Collected Coin! (+10 pts)');
+                            triggerCollectSparks(screenX, screenY, 'var(--amber-clay)');
+                        }
+                    }
+                }
+            });
+        }
+
+        function triggerCollectSparks(x, y, color) {
+            for (let i = 0; i < 8; i++) {
+                particles.push(new SparkParticle(x, y, color));
+            }
+        }
+
+        // Core physics calculations updates
+        function updatePhysics() {
+            if (!state.gameActive || state.gameOver) return;
+
+            const isGasActive = keys.ArrowRight || keys.d || keys.gasPedal;
+            const isBrakeActive = keys.ArrowLeft || keys.a || keys.brakePedal;
+
+            // Fuel depletion
+            if (isGasActive) {
+                state.fuel = Math.max(0, state.fuel - config.fuelConsumption * 1.5);
+            } else {
+                state.fuel = Math.max(0, state.fuel - config.fuelConsumption * 0.4);
+            }
+            document.getElementById('fuel-bar').style.width = `${state.fuel}%`;
+
+            // Out of fuel checker
+            if (state.fuel <= 0 && state.vx === 0) {
+                state.deathReason = '⚠️ Out of Fuel!';
+                handleGameOver();
+                return;
+            }
+
+            // Wheel coordinate projections checks
+            const backWheelX = state.worldX - 22;
+            const frontWheelX = state.worldX + 22;
+
+            const backWheelY = getTerrainHeight(backWheelX);
+            const frontWheelY = getTerrainHeight(frontWheelX);
+
+            const slopeY = frontWheelY - backWheelY;
+            const slopeAngle = Math.atan2(slopeY, 44);
+
+            // Distance projection checking
+            const avgGroundY = (backWheelY + frontWheelY) / 2;
+
+            const onGround = state.carY >= avgGroundY - 8;
+
+            if (onGround) {
+                // Landed constraints: Align to sloped surface coordinates
+                state.carY = avgGroundY - 6;
+                state.vy = 0;
+                
+                // Rotational alignment stiffness
+                state.angle = slopeAngle;
+                state.angularVelocity = 0;
+
+                // Move forward velocity calculations
+                if (state.fuel > 0) {
+                    if (isGasActive) {
+                        state.vx = Math.min(6.5, state.vx + 0.14 - Math.sin(state.angle) * 0.12);
+                        // Emit running clay dust particles
+                        if (Math.random() < 0.35) {
+                            particles.push(new DustParticle(state.carX - 25, state.carY + 12 - camera.y));
+                        }
+                    } else if (isBrakeActive) {
+                        state.vx = Math.max(-2.5, state.vx - 0.18 + Math.sin(state.angle) * 0.12);
+                    } else {
+                        // friction roll
+                        state.vx *= 0.985;
+                    }
+                } else {
+                    // Out of fuel coast
+                    state.vx = Math.max(0, state.vx - 0.05);
+                }
+            } else {
+                // In air physics calculations
+                state.vy += 0.32; // Gravity pull
+                state.carY += state.vy;
+
+                // Aerodynamic rotational torque keys controls
+                if (isGasActive) {
+                    state.angularVelocity += 0.007; // tilt forward
+                } else if (isBrakeActive) {
+                    state.angularVelocity -= 0.007; // tilt backward
+                }
+                
+                state.angularVelocity *= 0.98; // rotation dampening
+                state.angle += state.angularVelocity;
+            }
+
+            // Apply forward velocity horizontal progression
+            state.worldX += state.vx;
+            state.distance = Math.floor((state.worldX - 180) / 10);
+            document.getElementById('current-distance').textContent = `${state.distance} m`;
+
+            // Flipped crash verification parameters
+            const relativeAngle = Math.abs(state.angle - slopeAngle);
+            if (onGround && relativeAngle > 1.35) {
+                state.deathReason = '💥 Jeep flipped over!';
+                handleGameOver();
+            }
+
+            // Camera target coordinates tracking
+            camera.x = state.worldX - state.carX;
+            camera.y = camera.y * 0.88 + (state.carY - canvas.height * 0.65) * 0.12;
+
+            updateCollectibles();
+            checkCollisions();
+        }
+
+        // Draw dynamic terrain landscape
+        function drawTerrain() {
+            ctx.save();
+
+            // Sky background gradient
+            const skyGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            skyGrad.addColorStop(0, '#020617');
+            skyGrad.addColorStop(0.6, '#0f172a');
+            skyGrad.addColorStop(1, '#1e293b');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Distant background mountains shapes (slow parallax)
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.015)';
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+            for (let x = 0; x < canvas.width; x += 15) {
+                const worldX = camera.x * 0.2 + x;
+                const mountainY = canvas.height * 0.72 - (Math.sin(worldX * 0.001) * 90 + Math.cos(worldX * 0.002) * 35) - camera.y * 0.2;
+                ctx.lineTo(x, mountainY);
+            }
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+
+            // Ground drawing
+            ctx.fillStyle = '#451a03'; // deep clay brown soil
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height);
+
+            // Plot coordinates relative to camera scroll offsets
+            for (let x = 0; x <= canvas.width; x += 10) {
+                const worldX = camera.x + x;
+                const groundY = getTerrainHeight(worldX) - camera.y;
+                ctx.lineTo(x, groundY);
+            }
+            ctx.lineTo(canvas.width, canvas.height);
+            ctx.closePath();
+            ctx.fill();
+
+            // Thick grassy green outline topping
+            ctx.strokeStyle = '#10b981'; // Green clay grass
+            ctx.lineWidth = 9;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+
+            for (let x = 0; x <= canvas.width; x += 10) {
+                const worldX = camera.x + x;
+                const groundY = getTerrainHeight(worldX) - camera.y;
+                if (x === 0) ctx.moveTo(x, groundY);
+                else ctx.lineTo(x, groundY);
+            }
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Draw Coins and canisters
+        function drawCollectibles() {
+            collectibles.forEach(item => {
+                if (!item.collected) {
+                    const screenX = item.x - camera.x;
+                    const screenY = item.y - camera.y;
+                    if (screenX > -30 && screenX < canvas.width + 30) {
+                        ctx.save();
+                        ctx.translate(screenX + item.width/2, screenY + item.height/2);
+
+                        if (item.type === 'fuel') {
+                            // Render Red Clay Canister with orange accents (RED!)
+                            ctx.fillStyle = '#ef4444'; // Crimson Red clay
+                            ctx.beginPath();
+                            ctx.roundRect(-item.width/2, -item.height/2, item.width, item.height, 4);
+                            ctx.fill();
+
+                            // Inset details
+                            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+                            ctx.lineWidth = 1.5;
+                            ctx.strokeRect(-item.width/2 + 2, -item.height/2 + 2, item.width - 4, item.height - 4);
+
+                            // Handle
+                            ctx.fillStyle = '#f97316'; // Orange clay
+                            ctx.fillRect(-6, -item.height/2 - 4, 12, 4);
+                        } else {
+                            // Render glowing gold clay coin
+                            ctx.fillStyle = '#f59e0b'; // Amber yellow clay
+                            ctx.shadowColor = '#f59e0b';
+                            ctx.shadowBlur = 12;
+                            ctx.beginPath();
+                            ctx.arc(0, 0, item.width/2, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            ctx.fillStyle = '#ffb703';
+                            ctx.beginPath();
+                            ctx.arc(0, 0, item.width/3.5, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                        ctx.restore();
+                    }
+                }
+            });
+        }
+
+        // Draw Player Jeep (Cute squishy clay jeep)
+        function drawPlayerVehicle() {
+            const screenCarX = state.carX;
+            const screenCarY = state.carY - camera.y;
+
+            ctx.save();
+            ctx.translate(screenCarX, screenCarY);
+            ctx.rotate(state.angle);
+
+            // 1. Draw Jeep Clay Body
+            ctx.fillStyle = '#f97316'; // Orange clay body
+            ctx.shadowColor = 'rgba(0,0,0,0.45)';
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 4;
+
+            ctx.beginPath();
+            // Bottom chassis
+            ctx.roundRect(-30, -8, 60, 16, 6);
+            ctx.fill();
+
+            // Cabin roof structure
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.roundRect(-20, -22, 36, 15, 4);
+            ctx.fill();
+
+            // Clay window highlighting
+            ctx.fillStyle = '#0ea5e9'; // Sky blue clay window
+            ctx.fillRect(-16, -18, 12, 10);
+            ctx.fillRect(0, -18, 12, 10);
+
+            // Mudguards over wheels
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.arc(-22, 6, 14, Math.PI, 0);
+            ctx.arc(22, 6, 14, Math.PI, 0);
+            ctx.fill();
+
+            // 2. Draw driver silhouette (Cute head details)
+            ctx.fillStyle = '#8b5cf6'; // purple driver head
+            ctx.beginPath();
+            ctx.arc(-6, -10, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // 3. Draw Rotatable clay wheels (Drawn independently to simulate spin!)
+            // Wheel positions calculated relative to slant angle
+            const cos = Math.cos(state.angle);
+            const sin = Math.sin(state.angle);
+
+            const wheelOffset = 22;
+            const drawWheel = (wx, wy) => {
+                ctx.save();
+                ctx.translate(wx, wy);
+                // Rotate wheel matching distance traveled
+                ctx.rotate(state.worldX * 0.08);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.shadowBlur = 5;
+                ctx.beginPath();
+                ctx.arc(0, 0, 11, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Clay hubcaps details
+                ctx.fillStyle = '#cbd5e1';
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Spoke lines
+                ctx.strokeStyle = '#475569';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-11, 0); ctx.lineTo(11, 0);
+                ctx.moveTo(0, -11); ctx.lineTo(0, 11);
+                ctx.stroke();
+
+                ctx.restore();
+            };
+
+            // Back wheel positions
+            const bx = screenCarX - wheelOffset * cos - 2 * sin;
+            const by = screenCarY - wheelOffset * sin + 2 * cos;
+            drawWheel(bx, by);
+
+            // Front wheel positions
+            const fx = screenCarX + wheelOffset * cos - 2 * sin;
+            const fy = screenCarY + wheelOffset * sin + 2 * cos;
+            drawWheel(fx, fy);
+        }
+
+        // Main game loops
+        function gameLoop() {
+            if (!state.gameActive && !state.gameOver) return;
+
+            updatePhysics();
+
+            // Clear screen
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawTerrain();
+            drawCollectibles();
+            drawPlayerVehicle();
+
+            // Update particles
+            particles = particles.filter(p => {
+                p.update();
+                p.draw();
+                return p.alpha > 0;
+            });
+
+            // HUD labels overlays
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 13px "Plus Jakarta Sans"';
+            ctx.fillText(`JEEP CLIMBER`, 20, 32);
+
+            // Render Game Over text overlays
+            if (state.gameOver) {
+                ctx.save();
+                ctx.fillStyle = 'rgba(11, 15, 25, 0.75)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.font = '800 32px "Plus Jakarta Sans"';
+                ctx.fillStyle = '#ef4444'; // Red crashed text
+                ctx.textAlign = 'center';
+                ctx.fillText('CRASHED!', canvas.width / 2, canvas.height / 2 - 30);
+
+                ctx.font = '600 16px "Plus Jakarta Sans"';
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(state.deathReason, canvas.width / 2, canvas.height / 2);
+                ctx.fillText('Press SPACE or click Restart Climb to run again.', canvas.width / 2, canvas.height / 2 + 30);
+                ctx.restore();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function handleGameOver() {
+            state.gameActive = false;
+            state.gameOver = true;
+            document.getElementById('restart-btn').style.display = 'inline-block';
+            
+            // Scatter explosion spark particles
+            for (let i = 0; i < 25; i++) {
+                particles.push(new SparkParticle(state.carX, state.carY - camera.y, '#f97316'));
+                particles.push(new SparkParticle(state.carX, state.carY - camera.y, '#f59e0b'));
+            }
+        }
+
+        function startGame() {
+            initDimensions();
+            
+            // State reset
+            state.gameActive = true;
+            state.gameOver = false;
+            state.score = 0;
+            state.distance = 0;
+            state.coins = 0;
+            state.fuel = 100;
+            state.worldX = 180;
+            state.carY = getTerrainHeight(180) - 20;
+            state.vx = 0;
+            state.vy = 0;
+            state.angle = 0;
+            state.angularVelocity = 0;
+
+            camera.x = 0;
+            camera.y = state.carY - canvas.height * 0.65;
+
+            collectibles = [];
+            particles = [];
+
+            document.getElementById('current-coins').textContent = '0';
+            document.getElementById('current-distance').textContent = '0 m';
+            document.getElementById('fuel-bar').style.width = '100%';
+            
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('restart-btn').style.display = 'inline-block';
+
+            addMessage('⛰️ Hill climb challenge started! Go gas!');
+
+            gameLoop();
+        }
+
+        // Setup Controls
+        function setupControls() {
+            window.addEventListener('keydown', e => {
+                if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                    e.preventDefault();
+                    keys.ArrowRight = true;
+                }
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                    e.preventDefault();
+                    keys.ArrowLeft = true;
+                }
+                if (e.code === 'Space') {
+                    e.preventDefault();
+                    if (!state.gameActive || state.gameOver) {
+                        startGame();
+                    }
+                }
+            });
+
+            window.addEventListener('keyup', e => {
+                if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                    keys.ArrowRight = false;
+                }
+                if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                    keys.ArrowLeft = false;
+                }
+            });
+
+            // Touch pedal handlers
+            const gasBtn = document.getElementById('gas-pedal');
+            const brakeBtn = document.getElementById('brake-pedal');
+
+            gasBtn.addEventListener('mousedown', () => keys.gasPedal = true);
+            gasBtn.addEventListener('mouseup', () => keys.gasPedal = false);
+            gasBtn.addEventListener('mouseleave', () => keys.gasPedal = false);
+            gasBtn.addEventListener('touchstart', e => { e.preventDefault(); keys.gasPedal = true; });
+            gasBtn.addEventListener('touchend', () => keys.gasPedal = false);
+
+            brakeBtn.addEventListener('mousedown', () => keys.brakePedal = true);
+            brakeBtn.addEventListener('mouseup', () => keys.brakePedal = false);
+            brakeBtn.addEventListener('mouseleave', () => keys.brakePedal = false);
+            brakeBtn.addEventListener('touchstart', e => { e.preventDefault(); keys.brakePedal = true; });
+            brakeBtn.addEventListener('touchend', () => keys.brakePedal = false);
+
+            document.getElementById('start-btn').onclick = startGame;
+            document.getElementById('restart-btn').onclick = startGame;
+        }
+
+        window.onload = () => {
+            initDimensions();
+            setupControls();
+
+            // Render start background
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#451a03';
+            ctx.fillRect(0, canvas.height * 0.72, canvas.width, canvas.height * 0.28);
+            ctx.strokeStyle = 'var(--green-clay)';
+            ctx.lineWidth = 8;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height * 0.72);
+            ctx.lineTo(canvas.width, canvas.height * 0.72);
+            ctx.stroke();
+        };
+    </script>
+</body>
+</html>

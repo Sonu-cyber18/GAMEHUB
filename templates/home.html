@@ -1,0 +1,591 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Hub - The Ultimate Arcade Portal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Palette: Glass + Clay combination */
+            --bg-dark: #070913;
+            --glass-bg: rgba(17, 24, 39, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            
+            /* Claymorphic Vibrant Accents */
+            --clay-orange: #ff7b00;
+            --clay-purple: #8b5cf6;
+            --clay-teal: #14b8a6;
+            --clay-cyan: #06b6d4;
+            --clay-pink: #ec4899;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Floating glowing background shapes to illuminate glass backdrop blur */
+        .ambient-glows {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glow-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.18;
+            animation: floatGlow 15s infinite alternate ease-in-out;
+        }
+
+        .glow-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--clay-purple);
+            top: -100px;
+            left: -100px;
+        }
+
+        .glow-2 {
+            width: 600px;
+            height: 600px;
+            background: var(--clay-teal);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        .glow-3 {
+            width: 400px;
+            height: 400px;
+            background: var(--clay-orange);
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.08;
+            animation-delay: -10s;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-50px) scale(1.15); }
+        }
+
+        /* Glassmorphism Header Panel */
+        header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.25rem 2rem;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, var(--clay-orange) 0%, var(--clay-pink) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Hero Area */
+        .hero {
+            max-width: 1200px;
+            margin: 3.5rem auto;
+            padding: 0 2rem;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        @media (max-width: 992px) {
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+                text-align: center;
+            }
+        }
+
+        .hero-left h1 {
+            font-size: 3.8rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-left h1 span {
+            background: linear-gradient(135deg, var(--clay-orange) 0%, var(--clay-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-left p {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+            max-width: 580px;
+        }
+
+        @media (max-width: 992px) {
+            .hero-left p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        /* Glassmorphism Panel on Left */
+        .glass-features {
+            background: var(--glass-bg);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 1.75rem;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-align: left;
+        }
+
+        /* Claymorphic Mini Badge inside Glass features */
+        .clay-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .clay-orange-bg {
+            background: var(--clay-orange);
+            box-shadow: 
+                4px 4px 10px rgba(0, 0, 0, 0.35),
+                inset -3px -3px 6px rgba(0, 0, 0, 0.4),
+                inset 3px 3px 6px rgba(255, 255, 255, 0.2);
+        }
+
+        .clay-teal-bg {
+            background: var(--clay-teal);
+            box-shadow: 
+                4px 4px 10px rgba(0, 0, 0, 0.35),
+                inset -3px -3px 6px rgba(0, 0, 0, 0.4),
+                inset 3px 3px 6px rgba(255, 255, 255, 0.2);
+        }
+
+        .clay-purple-bg {
+            background: var(--clay-purple);
+            box-shadow: 
+                4px 4px 10px rgba(0, 0, 0, 0.35),
+                inset -3px -3px 6px rgba(0, 0, 0, 0.4),
+                inset 3px 3px 6px rgba(255, 255, 255, 0.2);
+        }
+
+        .feature-text h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .feature-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Hero Right Column: Floating Claymorphic Showcase Cards */
+        .hero-right {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+        }
+
+        .clay-showcase-card {
+            width: 260px;
+            padding: 2rem;
+            border-radius: 32px;
+            text-align: center;
+            position: absolute;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        /* 3D Inflatable Clay shadows */
+        .card-orange {
+            background: var(--clay-orange);
+            color: #0b0c10;
+            transform: rotate(-8deg) translateX(-45px) translateY(-15px);
+            z-index: 2;
+            box-shadow: 
+                15px 15px 35px rgba(0, 0, 0, 0.45),
+                inset -6px -6px 12px rgba(0, 0, 0, 0.4),
+                inset 6px 6px 12px rgba(255, 255, 255, 0.25);
+        }
+
+        .card-purple {
+            background: var(--clay-purple);
+            color: #ffffff;
+            transform: rotate(6deg) translateX(45px) translateY(20px);
+            z-index: 1;
+            box-shadow: 
+                15px 15px 35px rgba(0, 0, 0, 0.45),
+                inset -6px -6px 12px rgba(0, 0, 0, 0.45),
+                inset 6px 6px 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .clay-showcase-card:hover {
+            transform: translateY(-20px) scale(1.05) rotate(0deg);
+            z-index: 5;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            animation: floatIcon 3s infinite alternate ease-in-out;
+        }
+
+        @keyframes floatIcon {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-8px); }
+        }
+
+        .clay-showcase-card h3 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .clay-showcase-card p {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            line-height: 1.4;
+        }
+
+        /* Action Buttons: Claymorphic Controls */
+        .actions-wrapper {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 992px) {
+            .actions-wrapper {
+                justify-content: center;
+            }
+        }
+
+        .btn-clay {
+            padding: 1.05rem 2.25rem;
+            font-size: 0.95rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .btn-clay-orange {
+            background: var(--clay-orange);
+            color: #0b0c10;
+            box-shadow: 
+                8px 8px 20px rgba(255, 123, 0, 0.15),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.35),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-clay-orange:hover {
+            transform: translateY(-4px) scale(1.02);
+            background: #ff8c1a;
+            box-shadow: 
+                10px 10px 24px rgba(255, 123, 0, 0.35),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.3),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.35);
+        }
+
+        .btn-clay-orange:active {
+            transform: translateY(2px);
+            box-shadow: 
+                2px 2px 6px rgba(0,0,0,0.5),
+                inset 4px 4px 8px rgba(0,0,0,0.5);
+        }
+
+        .btn-clay-purple {
+            background: var(--clay-purple);
+            color: #ffffff;
+            box-shadow: 
+                8px 8px 20px rgba(139, 92, 246, 0.15),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.4),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-clay-purple:hover {
+            transform: translateY(-4px) scale(1.02);
+            background: #9d73f8;
+            box-shadow: 
+                10px 10px 24px rgba(139, 92, 246, 0.35),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.35),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-clay-purple:active {
+            transform: translateY(2px);
+            box-shadow: 
+                2px 2px 6px rgba(0,0,0,0.5),
+                inset 4px 4px 8px rgba(0,0,0,0.6);
+        }
+
+        /* Glassmorphic stats container */
+        .glass-stats-grid {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .glass-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stat-card-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            box-shadow: 
+                0 10px 25px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .stat-num-clay {
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
+            font-size: 1.35rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-desc h5 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-desc p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(7, 9, 19, 0.8);
+            border-top: 1px solid var(--glass-border);
+            padding: 1.5rem 0;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            z-index: 10;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background glowing layers -->
+    <div class="ambient-glows">
+        <div class="glow-circle glow-1"></div>
+        <div class="glow-circle glow-2"></div>
+        <div class="glow-circle glow-3"></div>
+    </div>
+
+    <!-- Header glass panel -->
+    <header>
+        <div class="header-container">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fa-solid fa-shapes"></i> GAME<span>HUB</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Hero Column Layout -->
+    <div class="hero">
+        <div class="hero-left">
+            <h1>The Ultimate <span>Arcade Portal</span></h1>
+            <p>Access high-fidelity retro games, track live scores, challenge friends, and climb settings inside a single system dashboard layout.</p>
+            
+            <div class="actions-wrapper">
+                <a href="{% url 'dashboard' %}" class="btn-clay btn-clay-orange">
+                    <i class="fa-solid fa-compass"></i> Enter Arcade
+                </a>
+                <a href="{% url 'login' %}" class="btn-clay btn-clay-purple">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login Account
+                </a>
+            </div>
+
+            <!-- Glass card featuring descriptions -->
+            <div class="glass-features">
+                <div class="feature-item">
+                    <div class="clay-badge clay-orange-bg">
+                        <i class="fa-solid fa-gamepad" style="color: #0b0c10;"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>6 Native Classics</h4>
+                        <p>Play Snake, Ludo, Chess, Endless Runner, Hill Climber, and Pac-man.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="clay-badge clay-teal-bg">
+                        <i class="fa-solid fa-bolt" style="color: #0b0c10;"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Tactile Layouts</h4>
+                        <p>Fully reactive touch control joystick panels and claymorphic overlays.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="clay-badge clay-purple-bg">
+                        <i class="fa-solid fa-ranking-star" style="color: #ffffff;"></i>
+                    </div>
+                    <div class="feature-text">
+                        <h4>Leaderboards</h4>
+                        <p>Record your personal records and compare scores with other players.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-right">
+            <!-- Interlapping floating claymorphic preview cards -->
+            <div class="clay-showcase-card card-orange">
+                <div class="card-icon">🚗</div>
+                <h3>Hill Climber</h3>
+                <p>Tilt your orange clay jeep and maintain gasoline to scale steep terrain slopes.</p>
+            </div>
+            
+            <div class="clay-showcase-card card-purple">
+                <div class="card-icon">🎲</div>
+                <h3>Ludo Champion</h3>
+                <p>Roll dice and move rounded clay tokens to victory in 2-player, 4-player, or AI mode.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Landing Glass Stats grid -->
+    <div class="glass-stats-grid">
+        <div class="stat-card-glass">
+            <div class="stat-num-clay clay-orange-bg" style="color: #0b0c10;">6</div>
+            <div class="stat-desc">
+                <h5>Arcade Games</h5>
+                <p>Free to play instantly</p>
+            </div>
+        </div>
+        <div class="stat-card-glass">
+            <div class="stat-num-clay clay-teal-bg" style="color: #0b0c10;">3D</div>
+            <div class="stat-desc">
+                <h5>Claymorphic Aesthetics</h5>
+                <p>Soft rounded visual designs</p>
+            </div>
+        </div>
+        <div class="stat-card-glass">
+            <div class="stat-num-clay clay-purple-bg" style="color: #ffffff;">100%</div>
+            <div class="stat-desc">
+                <h5>Responsive</h5>
+                <p>Perfect for desktop and mobile</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 Game Hub | Designed with Glassmorphism & Claymorphism
+    </footer>
+</body>
+</html>

@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Stickman Hitman 3D - Open World Stealth Strategy</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Orbitron:wght@500;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #07090e 0%, #0f121d 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+
+        /* 3D Extruded Title */
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(to right, #ffd700, #ff9f43, #ff4757);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 
+                0 1px 0 #b39b00, 
+                0 2px 0 #998400, 
+                0 3px 0 #806e00, 
+                0 4px 0 #665800, 
+                0 5px 0 #4d4200, 
+                0 6px 1px rgba(0,0,0,0.5), 
+                0 0 25px rgba(255, 215, 0, 0.35);
+            margin-bottom: 5px;
+        }
+
+        .tagline {
+            font-size: 1.05rem;
+            color: #ff9f43;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 159, 67, 0.4);
+        }
+
+        .game-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            width: 100%;
+            justify-content: center;
+            perspective: 1200px;
+        }
+
+        /* Skeuomorphic Arcade Cabinet Bezel */
+        .game-container, .ui-panel {
+            position: relative;
+            background: radial-gradient(circle at center, #111424 0%, #08080f 100%);
+            border-radius: 16px;
+            overflow: hidden;
+            border-top: 4px solid #64748b;
+            border-left: 4px solid #475569;
+            border-right: 4px solid #334155;
+            border-bottom: 6px solid #1e293b;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 
+                        inset 0 0 30px rgba(0, 0, 0, 0.95),
+                        0 0 15px rgba(255, 159, 67, 0.1);
+            backdrop-filter: blur(5px);
+            animation: crtGlow 0.25s infinite alternate;
+        }
+
+        .game-container {
+            width: 800px;
+            height: 500px;
+        }
+
+        /* CRT Screen Scanline Overlay */
+        .game-container::before, .ui-panel::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+            z-index: 2;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        @keyframes crtGlow {
+            0% { opacity: 0.97; }
+            100% { opacity: 1.0; }
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Transparent HUD Canvas for target markers, crosshairs */
+        #hudCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* 3D Sniper Scope Overlay */
+        .sniper-scope {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+            z-index: 6;
+            background: radial-gradient(circle, transparent 35%, rgba(0,0,0,0.85) 60%);
+        }
+
+        .sniper-crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border: 2px solid #ff4757;
+            border-radius: 50%;
+        }
+
+        .sniper-crosshair::before {
+            content: "";
+            position: absolute;
+            top: 50%; left: -20px; right: -20px;
+            height: 2px; background: #ff4757;
+        }
+
+        .sniper-crosshair::after {
+            content: "";
+            position: absolute;
+            left: 50%; top: -20px; bottom: -20px;
+            width: 2px; background: #ff4757;
+        }
+
+        .ui-panel {
+            flex: 1;
+            min-width: 340px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        /* Embedded LED Display tubes */
+        .stat-box {
+            background: rgba(0, 0, 0, 0.45);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            border-top: 2px solid #1e293b;
+            border-left: 2px solid #1e293b;
+            border-bottom: 2px solid #475569;
+            border-right: 2px solid #475569;
+            box-shadow: inset 0 3px 8px rgba(0,0,0,0.85), 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .stat-box.detection .stat-value {
+            color: #ff4757;
+            text-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 4px;
+        }
+
+        /* Circular Radar Minimap */
+        .radar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.7);
+        }
+
+        .radar-canvas {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #082f49 0%, #0f172a 100%);
+            border: 3px solid #ff9f43;
+            box-shadow: 0 0 15px rgba(255, 159, 67, 0.25);
+        }
+
+        .mission-info {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+        }
+
+        .mission-title {
+            font-size: 1.15rem;
+            color: #ffd700;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+        }
+
+        .mission-desc {
+            font-size: 0.85rem;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        /* Tactile Mechanical Buttons */
+        .btn {
+            position: relative;
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #canvasStartButton:active {
+            transform: translate(-50%, -46%) !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #ff9f43, #ff4757);
+            color: white;
+            border-bottom: 5px solid #842300;
+            box-shadow: 0 4px 10px rgba(255, 159, 67, 0.3), 0 5px 0 #842300;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(90deg, #4b6584, #2d98da);
+            color: white;
+            border-bottom: 5px solid #1a324a;
+            box-shadow: 0 4px 10px rgba(75, 101, 132, 0.3), 0 5px 0 #1a324a;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(255, 159, 67, 0.4), 0 7px 0 #842300;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 12px rgba(75, 101, 132, 0.4), 0 7px 0 #1a324a;
+        }
+
+        .btn:active {
+            transform: translateY(4px);
+            border-bottom: 1px solid #334155;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.6), 0 1px 0 #000;
+        }
+
+        .weapon-belt {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .weapon-slot {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #475569;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .weapon-slot.active {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            background: rgba(255, 215, 0, 0.08);
+        }
+
+        .weapon-icon {
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+
+        .weapon-name {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .weapon-slot.active .weapon-name {
+            color: #ffd700;
+        }
+
+        .alarm-warning {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(235, 9, 9, 0.95);
+            border: 2px solid #ff4757;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            display: none;
+            z-index: 5;
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
+            animation: pulseWarning 0.5s alternate infinite;
+            letter-spacing: 1px;
+        }
+
+        @keyframes pulseWarning {
+            0% { transform: translate(-50%, 0) scale(0.95); opacity: 0.8; }
+            100% { transform: translate(-50%, 0) scale(1.05); opacity: 1; }
+        }
+
+        footer {
+            margin-top: 15px;
+            text-align: center;
+            color: #4a5568;
+            font-size: 0.8rem;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* Tactical Alert Overlay */
+        .alert-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(10, 4, 4, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 12px;
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s forwards;
+            border: 4px solid #ff4757;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .alert-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #ff4757;
+            margin-bottom: 5px;
+            text-shadow: 0 0 25px rgba(255, 71, 87, 0.6);
+            letter-spacing: 2px;
+        }
+
+        .alert-message {
+            font-size: 1.1rem;
+            color: #ffbe76;
+            margin-bottom: 25px;
+            max-width: 450px;
+            text-align: center;
+            line-height: 1.4;
+            font-style: italic;
+        }
+
+        .back-hub-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: #a0aec0;
+            font-size: 0.8rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            z-index: 50;
+            backdrop-filter: blur(5px);
+        }
+
+        .back-hub-btn:hover {
+            color: #fff;
+            border-color: #ff9f43;
+            background: rgba(255, 159, 67, 0.1);
+        }
+
+        @media (max-width: 1150px) {
+            .game-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            .game-container {
+                width: 100%;
+                max-width: 800px;
+                height: 450px;
+            }
+            .ui-panel {
+                width: 100%;
+                max-width: 800px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.2rem; }
+            .game-container { height: 380px; }
+            .back-hub-btn { position: relative; top: auto; left: auto; margin-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Back to Dashboard -->
+    <a href="/dashboard/" class="back-hub-btn">
+        <i class="fa-solid fa-arrow-left"></i> Game Hub Dashboard
+    </a>
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-crosshairs"></i> Stickman Hitman</h1>
+            <p class="tagline">3D Open World Infiltration Strategy. Plan. Sneak. Eliminate.</p>
+        </header>
+        
+        <div class="alarm-warning" id="alarmWarning">🚨 WANTED: ALARM ACTIVE!</div>
+        
+        <div class="game-wrapper">
+            <div class="game-container">
+                <canvas id="gameCanvas" width="800" height="500" tabindex="1" style="outline: none;"></canvas>
+                <canvas id="hudCanvas" width="800" height="500"></canvas>
+                
+                <!-- Big Overlay Start Button -->
+                <button id="canvasStartButton" class="btn btn-primary" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 8; width: auto; padding: 16px 36px; font-size: 1.4rem; font-family: 'Orbitron', sans-serif;">
+                    <i class="fas fa-play"></i> Start Mission
+                </button>
+                
+                <!-- 3D Sniper Scope Overlay -->
+                <div class="sniper-scope" id="sniperScope">
+                    <div class="sniper-crosshair"></div>
+                </div>
+
+                <!-- Tactical Action Modal Overlay -->
+                <div class="alert-screen" id="alertScreen">
+                    <h2 class="alert-title" id="alertTitle">MISSION FAILED</h2>
+                    <p class="alert-message" id="alertMessage">You were compromised by security patrols.</p>
+                    <div class="buttons" style="width: 80%; max-width: 400px;">
+                        <button class="btn btn-primary" id="restartButton">
+                            <i class="fas fa-redo"></i> Restart Mission
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="ui-panel">
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="targetCountDisplay">1</div>
+                        <div class="stat-label">Targets Left</div>
+                    </div>
+                    <div class="stat-box detection">
+                        <div class="stat-value" id="detectionDisplay">0%</div>
+                        <div class="stat-label">Suspicion</div>
+                    </div>
+                </div>
+
+                <div class="radar-container">
+                    <canvas id="radarCanvas" class="radar-canvas" width="140" height="140"></canvas>
+                    <div class="stat-label" style="margin-top: 8px;"><i class="fas fa-radar"></i> Tactical Radar</div>
+                </div>
+                
+                <div class="mission-info">
+                    <div class="mission-title" id="missionName">Contract: The Syndicate Envoy</div>
+                    <div class="mission-desc" id="missionDesc">Eliminate target 'Agent Fox' at the concrete facility. Avoid triggering guard alert status.</div>
+                </div>
+
+                <div class="mission-info" style="border-color: rgba(255, 159, 67, 0.3); background: rgba(255, 159, 67, 0.03);">
+                    <div class="mission-title" style="color: #ff9f43; font-size: 0.9rem;"><i class="fas fa-keyboard"></i> Tactical Controls</div>
+                    <div class="mission-desc" style="font-size: 0.82rem; line-height: 1.6; color: #cbd5e1;">
+                        • <strong>Move</strong>: <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">W</kbd> <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">A</kbd> <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">S</kbd> <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">D</kbd> or <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">Arrows</kbd><br>
+                        • <strong>Look</strong>: Drag/Swipe screen to rotate camera<br>
+                        • <strong>Select Weapon</strong>: <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">1</kbd> (Knife) | <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">2</kbd> (Pistol) | <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">3</kbd> (Sniper)<br>
+                        • <strong>Zoom Scope</strong>: <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">Right Click</kbd> or <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">Shift</kbd> (Sniper)<br>
+                        • <strong>Attack</strong>: <kbd style="background:#1e293b; padding:2px 5px; border-radius:4px; border:1px solid #475569;">Left Click</kbd> to strike
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="stat-label" style="margin-bottom: 8px;">Hitman Loadout</h3>
+                    <div class="weapon-belt">
+                        <div class="weapon-slot active" data-weapon="knife">
+                            <div class="weapon-icon"><i class="fas fa-knife"></i></div>
+                            <div class="weapon-name">Knife</div>
+                        </div>
+                        <div class="weapon-slot" data-weapon="pistol">
+                            <div class="weapon-icon"><i class="fas fa-gun"></i></div>
+                            <div class="weapon-name">Pistol</div>
+                        </div>
+                        <div class="weapon-slot" data-weapon="sniper">
+                            <div class="weapon-icon"><i class="fas fa-crosshairs"></i></div>
+                            <div class="weapon-name">Sniper</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="buttons" style="display: flex; gap: 10px; width: 100%;">
+                    <button class="btn btn-primary" id="startButton">
+                        <i class="fas fa-play"></i> Deploy
+                    </button>
+                    <button class="btn btn-secondary" id="nextMissionButton" disabled>
+                        Next Contract <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button class="btn btn-secondary" id="resetButton" style="background: linear-gradient(90deg, #4b5563, #374151); border-bottom-color: #111827; box-shadow: 0 4px 10px rgba(0,0,0,0.3), 0 5px 0 #111827;">
+                        <i class="fas fa-undo"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Stickman Hitman Strategy | Mouse Drag to Rotate View | Click to Strike</p>
+            <p>Use Strategy: Sniper has high range but alarms city. Knife is silent.</p>
+        </footer>
+    </div>
+
+    <!-- Three.js Library CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Canvas Renderer and Infiltration Logic Script -->
+    <script>
+        // --- SOUND EFFECTS SYNTHESIZER ---
+        class GameAudioSynth {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                try {
+                    if (this.ctx) return;
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                    }
+                } catch(e) {
+                    console.warn("AudioContext blocked:", e);
+                }
+            }
+
+            playKnife() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.09);
+            }
+
+            playPistol() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(80, this.ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.16);
+            }
+
+            playSniper() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+                osc.frequency.linearRampToValueAtTime(40, this.ctx.currentTime + 0.45);
+                gain.gain.setValueAtTime(0.35, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.45);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.46);
+            }
+
+            playAlert() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(880, this.ctx.currentTime);
+                osc.frequency.setValueAtTime(440, this.ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+                
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.26);
+            }
+
+            playWin() {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                osc.type = 'triangle';
+                const now = this.ctx.currentTime;
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.setValueAtTime(554.37, now + 0.1);
+                osc.frequency.setValueAtTime(659.25, now + 0.2);
+                osc.frequency.setValueAtTime(880, now + 0.3);
+                
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                
+                osc.start();
+                osc.stop(now + 0.55);
+            }
+        }
+
+        const gameAudio = new GameAudioSynth();
+
+        // --- THREE.JS GRAPHICS SETUP ---
+        let scene, camera, renderer, clock;
+        let sceneMeshes = [];
+        let playerGroup, shadowMesh;
+        let hudCanvas, ctx;
+        
+        let mouseLook = { yaw: -Math.PI / 2, pitch: 0.4 };
+        let mouseIsDown = false;
+        let prevMousePos = { x: 0, y: 0 };
+        
+        let screenShake = { intensity: 0, duration: 0 };
+        let particles = [];
+        let radarCtx;
+
+        // Custom 3D Materials
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+        const roadMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
+        const buildingMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4, metalness: 0.1 });
+        const targetMat = new THREE.MeshStandardMaterial({ color: 0xff4757, roughness: 0.7 });
+        const guardMat = new THREE.MeshStandardMaterial({ color: 0xff9f43, roughness: 0.7 });
+        const citizenMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.7 });
+        const playerSuitMat = new THREE.MeshStandardMaterial({ color: 0x020617, roughness: 0.5 });
+        const whiteTieMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const redTieMat = new THREE.MeshStandardMaterial({ color: 0xef4444 });
+        
+        let gameState = {
+            running: false,
+            mission: 1,
+            targetsLeft: 1,
+            suspicion: 0,
+            alarmActive: false,
+            activeWeapon: 'knife',
+            sniperZoom: false,
+            keys: {},
+            player: {
+                x: 0,
+                z: 0,
+                dirX: 0,
+                dirZ: -1,
+                speed: 95,
+                health: 100,
+                ammo: 10
+            },
+            targets: [],
+            guards: [],
+            citizens: [],
+            buildings: [],
+            weaponPickups: [],
+            worldSize: 600
+        };
+
+        const missions = [
+            {
+                id: 1,
+                name: "Contract: The Syndicate Envoy",
+                desc: "Eliminate target 'Agent Fox' at the concrete warehouse block. Avoid security vision cones."
+            },
+            {
+                id: 2,
+                name: "Contract: Double Agent",
+                desc: "Eliminate two syndicate negotiators patrolling the office corridors. High alert guards present."
+            },
+            {
+                id: 3,
+                name: "Contract: Safehouse Infiltration",
+                desc: "Infiltrate the high-security safehouse, retrieve the encrypted ledger, and clear all targets."
+            }
+        ];
+
+        // --- 3D PARTICLE CLASS ---
+        class SparkParticle {
+            constructor(x, y, z, vx, vy, vz, color, size, life) {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+                this.vx = vx;
+                this.vy = vy;
+                this.vz = vz;
+                this.color = color;
+                this.life = life;
+                this.maxLife = life;
+
+                const geo = new THREE.BoxGeometry(size, size, size);
+                const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 1.0 });
+                this.mesh = new THREE.Mesh(geo, mat);
+                this.mesh.position.set(x, y, z);
+                scene.add(this.mesh);
+                sceneMeshes.push(this.mesh);
+            }
+
+            update(delta) {
+                this.x += this.vx * delta * 60;
+                this.y += this.vy * delta * 60;
+                this.z += this.vz * delta * 60;
+                this.vy -= 0.15 * delta * 60; // gravity
+                
+                this.life -= delta;
+                
+                this.mesh.position.set(this.x, this.y, this.z);
+                this.mesh.material.opacity = Math.max(0, this.life / this.maxLife);
+            }
+
+            destroy() {
+                scene.remove(this.mesh);
+                const idx = sceneMeshes.indexOf(this.mesh);
+                if (idx > -1) sceneMeshes.splice(idx, 1);
+            }
+        }
+
+        function createGunshotSpark(x, y, z, dirX, dirZ) {
+            for (let i = 0; i < 15; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 5;
+                particles.push(new SparkParticle(
+                    x, y, z,
+                    dirX * 8 + (Math.random() - 0.5) * 4,
+                    2 + Math.random() * 3,
+                    dirZ * 8 + (Math.random() - 0.5) * 4,
+                    '#ffd700',
+                    0.8,
+                    0.4 + Math.random() * 0.3
+                ));
+            }
+        }
+
+        function createBloodSpark(x, y, z) {
+            for (let i = 0; i < 10; i++) {
+                particles.push(new SparkParticle(
+                    x, y, z,
+                    (Math.random() - 0.5) * 3,
+                    3 + Math.random() * 3,
+                    (Math.random() - 0.5) * 3,
+                    '#ff4757',
+                    0.7,
+                    0.3 + Math.random() * 0.2
+                ));
+            }
+        }
+
+        // --- 3D STICKMAN RIG GENERATOR ---
+        function createStickmanMesh(suitMat, tieMat, hat = false) {
+            const group = new THREE.Group();
+
+            // Head: Sphere
+            const head = new THREE.Mesh(new THREE.SphereGeometry(2.4, 16, 16), new THREE.MeshStandardMaterial({color: 0xffdbac, roughness: 0.8}));
+            head.position.y = 13.5;
+            head.castShadow = true;
+            group.add(head);
+
+            if (hat) {
+                // Flat fedora brim
+                const brim = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.2, 0.4, 16), playerSuitMat);
+                brim.position.y = 15;
+                group.add(brim);
+                
+                // Crown
+                const crown = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.8, 2.2, 16), playerSuitMat);
+                crown.position.y = 16;
+                group.add(crown);
+            }
+
+            // Torso: Thin Cylinder
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 8), suitMat);
+            torso.position.y = 9.5;
+            torso.castShadow = true;
+            group.add(torso);
+
+            if (tieMat) {
+                // Signature Tie outline mesh
+                const tie = new THREE.Mesh(new THREE.BoxGeometry(0.6, 2.2, 0.4), tieMat);
+                tie.position.set(0, 11, 0.5);
+                group.add(tie);
+            }
+
+            // Limbs: Cylinders
+            const limbGeo = new THREE.CylinderGeometry(0.35, 0.35, 4.5, 8);
+            
+            // Left Leg Group
+            const leftLegG = new THREE.Group();
+            leftLegG.position.set(-1.1, 6.8, 0);
+            const lLeg = new THREE.Mesh(limbGeo, suitMat);
+            lLeg.position.y = -2.25;
+            lLeg.castShadow = true;
+            leftLegG.add(lLeg);
+
+            // Right Leg Group
+            const rightLegG = new THREE.Group();
+            rightLegG.position.set(1.1, 6.8, 0);
+            const rLeg = new THREE.Mesh(limbGeo, suitMat);
+            rLeg.position.y = -2.25;
+            rLeg.castShadow = true;
+            rightLegG.add(rLeg);
+
+            // Left Arm Group
+            const leftArmG = new THREE.Group();
+            leftArmG.position.set(-1.6, 12, 0);
+            const lArm = new THREE.Mesh(limbGeo, suitMat);
+            lArm.position.y = -2.25;
+            lArm.castShadow = true;
+            leftArmG.add(lArm);
+
+            // Right Arm Group
+            const rightArmG = new THREE.Group();
+            rightArmG.position.set(1.6, 12, 0);
+            const rArm = new THREE.Mesh(limbGeo, suitMat);
+            rArm.position.y = -2.25;
+            rArm.castShadow = true;
+            rightArmG.add(rArm);
+
+            group.add(leftLegG, rightLegG, leftArmG, rightArmG);
+            
+            // Return rigs as object keys for walk-swing updates
+            return {
+                mesh: group,
+                leftLeg: leftLegG,
+                rightLeg: rightLegG,
+                leftArm: leftArmG,
+                rightArm: rightArmG
+            };
+        }
+
+        // --- CITY OPEN WORLD CREATION ---
+        function createCityWorld() {
+            // Ground
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(gameState.worldSize, gameState.worldSize), groundMat);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            sceneMeshes.push(ground);
+
+            // Add roads
+            const road1 = new THREE.Mesh(new THREE.PlaneGeometry(80, gameState.worldSize), roadMat);
+            road1.rotation.x = -Math.PI/2;
+            road1.position.set(0, 0.05, 0);
+            road1.receiveShadow = true;
+            scene.add(road1);
+            sceneMeshes.push(road1);
+
+            const road2 = new THREE.Mesh(new THREE.PlaneGeometry(gameState.worldSize, 80), roadMat);
+            road2.rotation.x = -Math.PI/2;
+            road2.position.set(0, 0.05, 0);
+            road2.receiveShadow = true;
+            scene.add(road2);
+            sceneMeshes.push(road2);
+
+            // Buildings grid
+            const offsets = [-180, -90, 90, 180];
+            offsets.forEach(bx => {
+                offsets.forEach(bz => {
+                    // Spawn Building block
+                    const h = 50 + Math.random() * 60;
+                    const w = 45 + Math.random() * 20;
+                    const d = 45 + Math.random() * 20;
+                    
+                    const boxGeo = new THREE.BoxGeometry(w, h, d);
+                    const bMesh = new THREE.Mesh(boxGeo, buildingMat);
+                    bMesh.position.set(bx, h/2, bz);
+                    bMesh.castShadow = true;
+                    bMesh.receiveShadow = true;
+                    scene.add(bMesh);
+                    sceneMeshes.push(bMesh);
+
+                    // Building bounding box for physics collision
+                    const box3 = new THREE.Box3().setFromObject(bMesh);
+                    gameState.buildings.push({
+                        mesh: bMesh,
+                        boundingBox: box3,
+                        x: bx,
+                        z: bz,
+                        w: w,
+                        d: d
+                    });
+
+                    // Add a tiny window glow outline
+                    const outlineGeo = new THREE.BoxGeometry(w + 0.4, h + 0.4, d + 0.4);
+                    const outlineMat = new THREE.MeshBasicMaterial({color: 0x1e3a8a, wireframe: true});
+                    const outline = new THREE.Mesh(outlineGeo, outlineMat);
+                    outline.position.set(bx, h/2, bz);
+                    scene.add(outline);
+                    sceneMeshes.push(outline);
+                });
+            });
+
+            // Weapon Pickup Crates
+            spawnWeaponCrate(-60, 4, -60, 'pistol');
+            spawnWeaponCrate(60, 4, 60, 'sniper');
+        }
+
+        function spawnWeaponCrate(x, y, z, type) {
+            const group = new THREE.Group();
+            
+            const crate = new THREE.Mesh(new THREE.BoxGeometry(8, 8, 8), new THREE.MeshStandardMaterial({color: 0xd35400, roughness: 0.5}));
+            crate.castShadow = true;
+            group.add(crate);
+
+            // Floating icon indicator
+            const iconGeo = new THREE.BoxGeometry(3, 1.2, 1.2);
+            const icon = new THREE.Mesh(iconGeo, new THREE.MeshBasicMaterial({color: 0xffd700}));
+            icon.position.y = 7;
+            group.add(icon);
+
+            group.position.set(x, y, z);
+            scene.add(group);
+            sceneMeshes.push(group);
+
+            gameState.weaponPickups.push({
+                mesh: group,
+                floatingIcon: icon,
+                x: x,
+                z: z,
+                type: type,
+                collected: false
+            });
+        }
+
+        // --- ENEMY & CIVILIAN AI INSTANCES ---
+        class NPC {
+            constructor(x, z, role) {
+                this.x = x;
+                this.z = z;
+                this.role = role; // 'target', 'guard', 'citizen'
+                this.health = 100;
+                this.speed = 12 + Math.random() * 8;
+                this.patrolIndex = 0;
+                
+                // Route target coordinates
+                this.waypoints = [
+                    {x: x, z: z},
+                    {x: x + (Math.random() - 0.5) * 80, z: z + (Math.random() - 0.5) * 80},
+                    {x: x + (Math.random() - 0.5) * 80, z: z + (Math.random() - 0.5) * 80}
+                ];
+
+                this.targetX = this.waypoints[1].x;
+                this.targetZ = this.waypoints[1].z;
+                
+                this.facingDir = {x: 0, z: -1};
+                this.dead = false;
+
+                // Create mesh rig
+                let suit = citizenMat;
+                let tie = null;
+                if (role === 'target') {
+                    suit = targetMat;
+                    tie = whiteTieMat;
+                } else if (role === 'guard') {
+                    suit = guardMat;
+                    tie = redTieMat;
+                }
+                
+                this.rig = createStickmanMesh(suit, tie, role === 'target');
+                this.rig.mesh.position.set(x, 0, z);
+                scene.add(this.rig.mesh);
+                sceneMeshes.push(this.rig.mesh);
+
+                this.walkCycle = Math.random() * 10;
+
+                if (role === 'guard') {
+                    // Create Conical Visual Vision cone helper light
+                    const coneGeo = new THREE.ConeGeometry(24, 75, 16);
+                    coneGeo.rotateX(Math.PI / 2);
+                    coneGeo.translate(0, 0, 37.5);
+                    const coneMat = new THREE.MeshBasicMaterial({color: 0xff3b30, transparent: true, opacity: 0.12});
+                    this.visionConeMesh = new THREE.Mesh(coneGeo, coneMat);
+                    this.visionConeMesh.position.y = 12;
+                    this.rig.mesh.add(this.visionConeMesh);
+                }
+            }
+
+            update(delta) {
+                if (this.dead) return;
+
+                // Swing legs
+                this.walkCycle += delta * this.speed * 0.8;
+                this.rig.leftLeg.rotation.x = Math.sin(this.walkCycle) * 0.75;
+                this.rig.rightLeg.rotation.x = -Math.sin(this.walkCycle) * 0.75;
+
+                // Move towards waypoint
+                const dx = this.targetX - this.x;
+                const dz = this.targetZ - this.z;
+                const dist = Math.sqrt(dx*dx + dz*dz);
+
+                if (dist < 4) {
+                    this.patrolIndex = (this.patrolIndex + 1) % this.waypoints.length;
+                    this.targetX = this.waypoints[this.patrolIndex].x;
+                    this.targetZ = this.waypoints[this.patrolIndex].z;
+                } else {
+                    const step = this.speed * delta;
+                    this.x += (dx / dist) * step;
+                    this.z += (dz / dist) * step;
+                    
+                    this.facingDir.x = dx / dist;
+                    this.facingDir.z = dz / dist;
+
+                    this.rig.mesh.position.set(this.x, 0, this.z);
+                    
+                    // Rotate stickman mesh facing target heading angle
+                    const angle = Math.atan2(dx, dz);
+                    this.rig.mesh.rotation.y = angle;
+                }
+
+                // Check Line of Sight if Guard
+                if (this.role === 'guard' && !gameState.alarmActive) {
+                    this.checkVisionSensor();
+                }
+            }
+
+            checkVisionSensor() {
+                const px = gameState.player.x;
+                const pz = gameState.player.z;
+                const dx = px - this.x;
+                const dz = pz - this.z;
+                const dist = Math.sqrt(dx*dx + dz*dz);
+
+                if (dist < 75) {
+                    // Check angle relative to facing vector
+                    const dot = dx * this.facingDir.x + dz * this.facingDir.z;
+                    const angle = Math.acos(dot / dist);
+
+                    if (angle < Math.PI / 4) { // 45 degree vision sector
+                        // Suspicion fills up when inside vision cone
+                        gameState.suspicion += 0.8;
+                        if (gameState.suspicion >= 100) {
+                            gameState.suspicion = 100;
+                            triggerAlarmAlert();
+                        }
+                    }
+                }
+            }
+
+            takeDamage(amount) {
+                this.health -= amount;
+                createBloodSpark(this.x, 10, this.z);
+                if (this.health <= 0 && !this.dead) {
+                    this.die();
+                }
+            }
+
+            die() {
+                this.dead = true;
+                // Rotate rig onto floor
+                this.rig.mesh.rotation.z = Math.PI / 2;
+                this.rig.mesh.position.y = 1.0;
+                
+                if (this.visionConeMesh) {
+                    this.visionConeMesh.visible = false;
+                }
+
+                gameState.trapLog.push(`Eliminated ${this.role}!`);
+                updateTrapLog();
+
+                if (this.role === 'target') {
+                    gameState.targetsLeft--;
+                    checkMissionStatus();
+                }
+            }
+        }
+
+        function triggerAlarmAlert() {
+            if (gameState.alarmActive) return;
+            gameState.alarmActive = true;
+            gameAudio.playAlert();
+            
+            const warning = document.getElementById('alarmWarning');
+            if (warning) warning.style.display = 'block';
+
+            gameState.trapLog.push("Alarm sounded! Guards alert!");
+            updateTrapLog();
+
+            // Guards move faster and home towards player position!
+            gameState.guards.forEach(g => {
+                g.speed = 32;
+                g.targetX = gameState.player.x;
+                g.targetZ = gameState.player.z;
+                g.waypoints = [{x: gameState.player.x, z: gameState.player.z}];
+            });
+
+            // Targets run to escape zone
+            gameState.targets.forEach(t => {
+                t.speed = 28;
+                t.targetX = 250;
+                t.targetZ = 250; // escape helipad beacon
+                t.waypoints = [{x: 250, z: 250}];
+            });
+        }
+
+        // --- HUD UPDATE telemetry ---
+        function updateTrapLog() {
+            const content = document.getElementById('trapLogContent');
+            if (!content) return;
+            content.innerHTML = '';
+            
+            const recents = gameState.trapLog.slice(-5);
+            recents.forEach(log => {
+                const item = document.createElement('div');
+                item.className = 'trap-log-item';
+                item.textContent = log;
+                content.appendChild(item);
+            });
+            content.scrollTop = content.scrollHeight;
+        }
+
+        function checkMissionStatus() {
+            document.getElementById('targetCountDisplay').textContent = gameState.targetsLeft;
+            
+            if (gameState.targetsLeft <= 0) {
+                // Clear Contract!
+                gameAudio.playWin();
+                gameState.running = false;
+                
+                const title = document.getElementById('alertTitle');
+                title.textContent = "CONTRACT CLEARED";
+                title.style.color = "#4caf50";
+                
+                const desc = document.getElementById('alertMessage');
+                desc.textContent = "All syndicate targets eliminated. Good job, Agent 47.";
+
+                document.getElementById('alertScreen').style.display = 'flex';
+                document.getElementById('nextMissionButton').disabled = false;
+            }
+        }
+
+        // --- THREE.JS INITIALIZATION ---
+        function initEngine() {
+            const canvas = document.getElementById('gameCanvas');
+            hudCanvas = document.getElementById('hudCanvas');
+            ctx = hudCanvas.getContext('2d');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x07090e);
+            scene.fog = new THREE.FogExp2(0x07090e, 0.002);
+
+            camera = new THREE.PerspectiveCamera(60, 800 / 500, 0.1, 1500);
+            
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(800, 500);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            clock = new THREE.Clock();
+
+            // Set up ambient + spot shadow light source
+            const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambient);
+
+            const spot = new THREE.DirectionalLight(0xffffff, 0.85);
+            spot.position.set(100, 200, 100);
+            spot.castShadow = true;
+            scene.add(spot);
+
+            // Add Hitman Player 3D mesh
+            const rig = createStickmanMesh(playerSuitMat, redTieMat, true);
+            playerGroup = rig.mesh;
+            scene.add(playerGroup);
+            sceneMeshes.push(playerGroup);
+        }
+
+        function clearThreeScene() {
+            particles.forEach(p => p.destroy());
+            particles = [];
+            
+            // Remove previous buildings and pickups
+            gameState.buildings = [];
+            gameState.weaponPickups = [];
+            gameState.targets = [];
+            gameState.guards = [];
+            gameState.citizens = [];
+
+            while (sceneMeshes.length > 0) {
+                const mesh = sceneMeshes.pop();
+                scene.remove(mesh);
+            }
+        }
+
+        function deployMission() {
+            if (!scene) {
+                initEngine();
+            }
+
+            clearThreeScene();
+            
+            // Re-add player to scene
+            scene.add(playerGroup);
+            sceneMeshes.push(playerGroup);
+
+            // World Layout
+            createCityWorld();
+
+            // Spawning targets and security according to mission
+            gameState.alarmActive = false;
+            gameState.suspicion = 0;
+            document.getElementById('alarmWarning').style.display = 'none';
+
+            if (gameState.mission === 1) {
+                gameState.targetsLeft = 1;
+                gameState.targets.push(new NPC(-120, -120, 'target'));
+                gameState.guards.push(new NPC(-80, -90, 'guard'));
+                gameState.guards.push(new NPC(-150, -150, 'guard'));
+                
+                // Citizens walking
+                for (let i = 0; i < 8; i++) {
+                    gameState.citizens.push(new NPC((Math.random() - 0.5) * 300, (Math.random() - 0.5) * 300, 'citizen'));
+                }
+            } else if (gameState.mission === 2) {
+                gameState.targetsLeft = 2;
+                gameState.targets.push(new NPC(120, 120, 'target'));
+                gameState.targets.push(new NPC(-120, 120, 'target'));
+                gameState.guards.push(new NPC(90, 80, 'guard'));
+                gameState.guards.push(new NPC(-90, 80, 'guard'));
+                gameState.guards.push(new NPC(0, 140, 'guard'));
+                
+                for (let i = 0; i < 12; i++) {
+                    gameState.citizens.push(new NPC((Math.random() - 0.5) * 300, (Math.random() - 0.5) * 300, 'citizen'));
+                }
+            } else if (gameState.mission === 3) {
+                gameState.targetsLeft = 3;
+                gameState.targets.push(new NPC(180, -180, 'target'));
+                gameState.targets.push(new NPC(180, 180, 'target'));
+                gameState.targets.push(new NPC(-180, 180, 'target'));
+                gameState.guards.push(new NPC(120, -120, 'guard'));
+                gameState.guards.push(new NPC(120, 120, 'guard'));
+                gameState.guards.push(new NPC(-120, 120, 'guard'));
+                
+                for (let i = 0; i < 15; i++) {
+                    gameState.citizens.push(new NPC((Math.random() - 0.5) * 400, (Math.random() - 0.5) * 400, 'citizen'));
+                }
+            }
+
+            // Player position reset
+            gameState.player.x = 0;
+            gameState.player.z = 180;
+            gameState.player.health = 100;
+            playerGroup.position.set(0, 0, 180);
+
+            // Update details
+            const mission = missions[gameState.mission - 1];
+            document.getElementById('missionName').textContent = mission.name;
+            document.getElementById('missionDesc').textContent = mission.desc;
+            
+            document.getElementById('targetCountDisplay').textContent = gameState.targetsLeft;
+            document.getElementById('alertScreen').style.display = 'none';
+
+            // Show start button on canvas if not running
+            if (!gameState.running) {
+                const canvasBtn = document.getElementById('canvasStartButton');
+                if (canvasBtn) canvasBtn.style.display = 'block';
+            }
+        }
+
+        // --- STRATEGY SHOOT / STRIKE ACTIONS ---
+        function strikeTarget() {
+            const px = gameState.player.x;
+            const pz = gameState.player.z;
+            
+            // Calculate shoot direction vector from camera yaw (where the camera is looking)
+            const dirX = -Math.cos(mouseLook.yaw);
+            const dirZ = -Math.sin(mouseLook.yaw);
+            
+            // Update player facing heading
+            gameState.player.dirX = dirX;
+            gameState.player.dirZ = dirZ;
+            playerGroup.rotation.y = Math.atan2(dirX, dirZ);
+
+            // Audio FX based on selection
+            if (gameState.activeWeapon === 'knife') {
+                gameAudio.playKnife();
+                
+                // Close range check
+                checkHitTarget(px + dirX * 12, pz + dirZ * 12, 14, 100);
+                
+            } else if (gameState.activeWeapon === 'pistol') {
+                gameAudio.playPistol();
+                createGunshotSpark(px, 11, pz, dirX, dirZ);
+                
+                // Direct line projectile check
+                checkBulletIntersection(px, pz, dirX, dirZ, 180, 50);
+                
+                // Gunshot alert radius
+                triggerSoundDetection(px, pz, 120);
+                
+            } else if (gameState.activeWeapon === 'sniper') {
+                gameAudio.playSniper();
+                createGunshotSpark(px, 11, pz, dirX, dirZ);
+                triggerScreenShake(8, 250);
+                
+                checkBulletIntersection(px, pz, dirX, dirZ, 600, 100);
+                
+                // Sniper is extremely loud!
+                triggerSoundDetection(px, pz, 350);
+            }
+        }
+
+        function checkHitTarget(hx, hz, range, damage) {
+            // Find closest target/npc inside hit radius
+            let hitAny = false;
+            [...gameState.targets, ...gameState.guards, ...gameState.citizens].forEach(npc => {
+                if (npc.dead) return;
+                const dist = Math.sqrt(Math.pow(npc.x - hx, 2) + Math.pow(npc.z - hz, 2));
+                if (dist < range) {
+                    npc.takeDamage(damage);
+                    hitAny = true;
+                }
+            });
+            return hitAny;
+        }
+
+        function checkBulletIntersection(px, pz, dx, dz, maxRange, damage) {
+            // Trace bullet vector
+            let step = 5;
+            for (let d = 5; d < maxRange; d += step) {
+                const bx = px + dx * d;
+                const bz = pz + dz * d;
+
+                // Collide with buildings
+                let hitWall = false;
+                gameState.buildings.forEach(b => {
+                    if (bx > b.x - b.w/2 && bx < b.x + b.w/2 &&
+                        bz > b.z - b.d/2 && bz < b.z + b.d/2) {
+                        hitWall = true;
+                    }
+                });
+                
+                if (hitWall) {
+                    createBloodSpark(bx, 10, bz); // cement spark
+                    break;
+                }
+
+                // Check hit NPC
+                if (checkHitTarget(bx, bz, 8, damage)) {
+                    break;
+                }
+            }
+        }
+
+        function triggerSoundDetection(sx, sz, radius) {
+            gameState.guards.forEach(g => {
+                if (g.dead) return;
+                const dist = Math.sqrt(Math.pow(g.x - sx, 2) + Math.pow(g.z - sz, 2));
+                if (dist < radius) {
+                    // Guard investigates gunshot origin coordinate
+                    g.targetX = sx;
+                    g.targetZ = sz;
+                    g.waypoints = [{x: sx, z: sz}];
+                    g.speed = 25;
+                    gameState.trapLog.push("Guard heard gunshot!");
+                    updateTrapLog();
+                }
+            });
+        }
+
+        // --- WEAPON SELECTOR AND SLOTS ---
+        function selectWeapon(type) {
+            const slots = document.querySelectorAll('.weapon-slot');
+            slots.forEach(s => s.classList.remove('active'));
+            const activeSlot = document.querySelector(`.weapon-slot[data-weapon="${type}"]`);
+            if (activeSlot) activeSlot.classList.add('active');
+            
+            gameState.activeWeapon = type;
+            gameState.trapLog.push(`Equipped ${type}`);
+            updateTrapLog();
+
+            const scope = document.getElementById('sniperScope');
+            if (type === 'sniper' && gameState.sniperZoom) {
+                scope.style.display = 'block';
+            } else {
+                scope.style.display = 'none';
+            }
+        }
+
+        const weaponSlots = document.querySelectorAll('.weapon-slot');
+        weaponSlots.forEach(slot => {
+            slot.addEventListener('click', () => {
+                selectWeapon(slot.dataset.weapon);
+            });
+        });
+
+        // --- HUD TACTICAL RADAR CANVAS ---
+        const radarCanvas = document.getElementById('radarCanvas');
+        radarCtx = radarCanvas.getContext('2d');
+
+        function drawRadar() {
+            radarCtx.clearRect(0, 0, 140, 140);
+            
+            // Draw grid rings
+            radarCtx.strokeStyle = 'rgba(255, 159, 67, 0.2)';
+            radarCtx.lineWidth = 1.5;
+            radarCtx.beginPath();
+            radarCtx.arc(70, 70, 65, 0, Math.PI * 2);
+            radarCtx.arc(70, 70, 40, 0, Math.PI * 2);
+            radarCtx.arc(70, 70, 15, 0, Math.PI * 2);
+            radarCtx.stroke();
+            
+            // Sweep scan line
+            const angle = (Date.now() / 400) % (Math.PI * 2);
+            radarCtx.strokeStyle = 'rgba(255, 215, 0, 0.4)';
+            radarCtx.beginPath();
+            radarCtx.moveTo(70, 70);
+            radarCtx.lineTo(70 + 65 * Math.cos(angle), 70 + 65 * Math.sin(angle));
+            radarCtx.stroke();
+
+            // Render Player dot in center
+            radarCtx.fillStyle = '#2d98da';
+            radarCtx.beginPath();
+            radarCtx.arc(70, 70, 4, 0, Math.PI * 2);
+            radarCtx.fill();
+
+            // Render entities on radar
+            const drawDot = (ex, ez, color) => {
+                const dx = ex - gameState.player.x;
+                const dz = ez - gameState.player.z;
+                
+                // Scale coordinate to fit 140px radar box
+                const rx = 70 + dx * 0.45;
+                const ry = 70 + dz * 0.45;
+                
+                // Bounded circle check
+                const dist = Math.sqrt(Math.pow(rx - 70, 2) + Math.pow(ry - 70, 2));
+                if (dist < 65) {
+                    radarCtx.fillStyle = color;
+                    radarCtx.beginPath();
+                    radarCtx.arc(rx, ry, 3.5, 0, Math.PI * 2);
+                    radarCtx.fill();
+                }
+            };
+
+            gameState.targets.forEach(t => {
+                if (!t.dead) drawDot(t.x, t.z, '#ff4757');
+            });
+            gameState.guards.forEach(g => {
+                if (!g.dead) drawDot(g.x, g.z, '#ff9f43');
+            });
+        }
+
+        // --- MAIN CANVAS GAME LOOP ---
+        let walkSwing = 0;
+        function gameLoop(timestamp) {
+            const delta = clock ? clock.getDelta() : 0.0166;
+
+            if (ctx) {
+                ctx.clearRect(0, 0, 800, 500);
+            }
+
+            if (gameState.running) {
+                // Update particles
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.update(delta);
+                    if (p.life <= 0) {
+                        p.destroy();
+                        particles.splice(i, 1);
+                    }
+                }
+
+                // Update input vectors
+                let mx = 0, mz = 0;
+                if (gameState.keys['w'] || gameState.keys['arrowup']) mz = -1;
+                if (gameState.keys['s'] || gameState.keys['arrowdown']) mz = 1;
+                if (gameState.keys['a'] || gameState.keys['arrowleft']) mx = -1;
+                if (gameState.keys['d'] || gameState.keys['arrowright']) mx = 1;
+
+                if (mx !== 0 || mz !== 0) {
+                    // Walk swing animations for player limbs
+                    walkSwing += delta * 15;
+                    const lLeg = playerGroup.children[2];
+                    const rLeg = playerGroup.children[3];
+                    const lArm = playerGroup.children[4];
+                    const rArm = playerGroup.children[5];
+
+                    if (lLeg && rLeg) {
+                        lLeg.rotation.x = Math.sin(walkSwing) * 0.65;
+                        rLeg.rotation.x = -Math.sin(walkSwing) * 0.65;
+                    }
+                    if (lArm && rArm) {
+                        lArm.rotation.x = -Math.sin(walkSwing) * 0.45;
+                        rArm.rotation.x = Math.sin(walkSwing) * 0.45;
+                    }
+
+                    // Move player relative to camera direction
+                    const forward = new THREE.Vector3(0, 0, -1).applyAxisAngle(new THREE.Vector3(0, 1, 0), mouseLook.yaw + Math.PI/2).normalize();
+                    const right = new THREE.Vector3(1, 0, 0).applyAxisAngle(new THREE.Vector3(0, 1, 0), mouseLook.yaw + Math.PI/2).normalize();
+
+                    const moveVec = new THREE.Vector3();
+                    moveVec.addScaledVector(forward, -mz);
+                    moveVec.addScaledVector(right, mx);
+                    moveVec.normalize();
+
+                    const step = gameState.player.speed * delta;
+                    gameState.player.x += moveVec.x * step;
+                    gameState.player.z += moveVec.z * step;
+
+                    gameState.player.dirX = moveVec.x;
+                    gameState.player.dirZ = moveVec.z;
+
+                    playerGroup.position.set(gameState.player.x, 0, gameState.player.z);
+                    playerGroup.rotation.y = Math.atan2(moveVec.x, moveVec.z);
+                    
+                    // Spawn dust particles
+                    if (Math.random() < 0.1) {
+                        particles.push(new SparkParticle(gameState.player.x, 0.2, gameState.player.z, 0, 0.4, 0, '#475569', 0.2, 0.3));
+                    }
+
+                    // Building collision check
+                    gameState.buildings.forEach(b => {
+                        const distToBuilding = Math.sqrt(Math.pow(gameState.player.x - b.x, 2) + Math.pow(gameState.player.z - b.z, 2));
+                        if (distToBuilding < (b.w + b.d)/2) {
+                            // Simple bounding box push back
+                            const playerBox = new THREE.Box3().setFromCenterAndSize(playerGroup.position, new THREE.Vector3(6, 18, 6));
+                            if (playerBox.intersectsBox(b.boundingBox)) {
+                                const pushDir = playerGroup.position.clone().sub(b.mesh.position).normalize();
+                                pushDir.y = 0;
+                                gameState.player.x += pushDir.x * 2.2;
+                                gameState.player.z += pushDir.z * 2.2;
+                                playerGroup.position.set(gameState.player.x, 0, gameState.player.z);
+                            }
+                        }
+                    });
+
+                    // Weapon Crate Pickup collision check
+                    gameState.weaponPickups.forEach(p => {
+                        if (p.collected) return;
+                        
+                        const dx = gameState.player.x - p.x;
+                        const dz = gameState.player.z - p.z;
+                        const dist = Math.sqrt(dx*dx + dz*dz);
+                        
+                        if (dist < 15) {
+                            p.collected = true;
+                            p.mesh.visible = false;
+                            p.floatingIcon.visible = false;
+                            
+                            gameAudio.playWin();
+                            gameState.trapLog.push(`UNLOCKED ${p.type.toUpperCase()} AMMO!`);
+                            updateTrapLog();
+                        }
+                    });
+                }
+
+                // Update NPC positions
+                gameState.targets.forEach(t => t.update(delta));
+                gameState.guards.forEach(g => g.update(delta));
+                gameState.citizens.forEach(c => c.update(delta));
+
+                // Suspicion meter decay
+                if (gameState.suspicion > 0 && !gameState.alarmActive) {
+                    gameState.suspicion -= 0.12 * delta * 60;
+                    if (gameState.suspicion < 0) gameState.suspicion = 0;
+                }
+                document.getElementById('detectionDisplay').textContent = `${Math.floor(gameState.suspicion)}%`;
+
+                // Alert guard combat chase
+                if (gameState.alarmActive) {
+                    gameState.guards.forEach(g => {
+                        if (g.dead) return;
+                        
+                        // Check target distance to player
+                        const dist = Math.sqrt(Math.pow(g.x - gameState.player.x, 2) + Math.pow(g.z - gameState.player.z, 2));
+                        if (dist < 12) {
+                            // Guard attacks player!
+                            gameState.player.health -= 15 * delta;
+                            createBloodSpark(gameState.player.x, 10, gameState.player.z);
+                            
+                            if (gameState.player.health <= 0) {
+                                triggerMissionFailure();
+                            }
+                        }
+                    });
+                }
+
+                // Draw minimap radar
+                drawRadar();
+            }
+
+            // Dynamic camera follow rotation
+            if (camera) {
+                const radius = gameState.sniperZoom ? 35 : 120;
+                const height = gameState.sniperZoom ? 14 : 60;
+                
+                camera.position.x = gameState.player.x + radius * Math.cos(mouseLook.yaw) * Math.cos(mouseLook.pitch);
+                camera.position.z = gameState.player.z + radius * Math.sin(mouseLook.yaw) * Math.cos(mouseLook.pitch);
+                camera.position.y = height + radius * Math.sin(mouseLook.pitch);
+                camera.lookAt(gameState.player.x, 12, gameState.player.z);
+            }
+
+            // Render frame
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+
+            // Draw pre-deployment overlay
+            if (!gameState.running && ctx) {
+                ctx.fillStyle = 'rgba(7, 9, 14, 0.45)';
+                ctx.fillRect(0, 0, 800, 500);
+
+                ctx.fillStyle = '#ffd700';
+                ctx.font = '800 24px Orbitron, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText("TAP 'DEPLOY' TO BEGIN CONTRACT", 400, 230);
+
+                ctx.fillStyle = '#cbd5e1';
+                ctx.font = '600 14px Outfit, sans-serif';
+                ctx.fillText("WASD/Arrows to Move | Drag Mouse to Look | Left Click to Attack", 400, 270);
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function triggerMissionFailure() {
+            gameState.running = false;
+            gameAudio.playAlert();
+            
+            const title = document.getElementById('alertTitle');
+            title.textContent = "MISSION FAILED";
+            title.style.color = "#ff4757";
+            
+            const desc = document.getElementById('alertMessage');
+            desc.textContent = "Syndicate reinforcements compromised your location.";
+
+            document.getElementById('alertScreen').style.display = 'flex';
+        }
+
+        // --- MOUSE AND ROTATION DRAG CONTROLS ---
+        const canvas = document.getElementById('gameCanvas');
+        
+        canvas.addEventListener('mousedown', (e) => {
+            // Check if right click for sniper zoom toggle!
+            if (e.button === 2) {
+                e.preventDefault();
+                if (gameState.running && gameState.activeWeapon === 'sniper') {
+                    gameState.sniperZoom = !gameState.sniperZoom;
+                    document.getElementById('sniperScope').style.display = gameState.sniperZoom ? 'block' : 'none';
+                    camera.fov = gameState.sniperZoom ? 18 : 60;
+                    camera.updateProjectionMatrix();
+                }
+            } else {
+                mouseIsDown = true;
+                prevMousePos.x = e.clientX;
+                prevMousePos.y = e.clientY;
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (mouseIsDown) {
+                const dx = e.clientX - prevMousePos.x;
+                const dy = e.clientY - prevMousePos.y;
+
+                mouseLook.yaw -= dx * 0.007;
+                mouseLook.pitch = Math.max(0.1, Math.min(1.2, mouseLook.pitch + dy * 0.005));
+
+                prevMousePos.x = e.clientX;
+                prevMousePos.y = e.clientY;
+            }
+        });
+
+        canvas.addEventListener('mouseup', (e) => {
+            if (e.button !== 2) {
+                mouseIsDown = false;
+            }
+        });
+
+        // Disable standard context menu on right click inside canvas
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+        // Left click triggers active weapon strike!
+        canvas.addEventListener('click', (e) => {
+            if (gameState.running && e.button === 0) {
+                strikeTarget();
+            }
+        });
+
+        // Key bindings
+        document.addEventListener('keydown', (e) => {
+            const keyLower = e.key.toLowerCase();
+            gameState.keys[keyLower] = true;
+            
+            // Swap weapons using 1, 2, 3 keys
+            if (e.key === '1') selectWeapon('knife');
+            if (e.key === '2') selectWeapon('pistol');
+            if (e.key === '3') selectWeapon('sniper');
+            
+            // Shift key toggles sniper scope zoom
+            if (keyLower === 'shift') {
+                if (gameState.running && gameState.activeWeapon === 'sniper') {
+                    gameState.sniperZoom = !gameState.sniperZoom;
+                    document.getElementById('sniperScope').style.display = gameState.sniperZoom ? 'block' : 'none';
+                    camera.fov = gameState.sniperZoom ? 18 : 60;
+                    camera.updateProjectionMatrix();
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            gameState.keys[e.key.toLowerCase()] = false;
+        });
+
+        // --- BUTTON BINDINGS ---
+        const handleStartGame = () => {
+            gameAudio.init();
+            if (!gameState.running) {
+                gameState.running = true;
+                document.getElementById('startButton').disabled = true;
+                
+                const canvasBtn = document.getElementById('canvasStartButton');
+                if (canvasBtn) canvasBtn.style.display = 'none';
+                
+                deployMission();
+                
+                // Focus the canvas to capture keyboard events instantly!
+                const canvasEl = document.getElementById('gameCanvas');
+                if (canvasEl) canvasEl.focus();
+            }
+        };
+
+        document.getElementById('startButton').addEventListener('click', handleStartGame);
+        document.getElementById('canvasStartButton').addEventListener('click', handleStartGame);
+
+        document.getElementById('restartButton').addEventListener('click', () => {
+            deployMission();
+            gameState.running = true;
+            const canvasEl = document.getElementById('gameCanvas');
+            if (canvasEl) canvasEl.focus();
+        });
+
+        document.getElementById('nextMissionButton').addEventListener('click', () => {
+            gameState.mission = (gameState.mission % 3) + 1;
+            document.getElementById('nextMissionButton').disabled = true;
+            document.getElementById('startButton').disabled = false;
+            deployMission();
+        });
+
+        document.getElementById('resetButton').addEventListener('click', () => {
+            gameState.mission = 1;
+            gameState.running = false;
+            document.getElementById('startButton').disabled = false;
+            document.getElementById('nextMissionButton').disabled = true;
+            deployMission();
+            const canvasEl = document.getElementById('gameCanvas');
+            if (canvasEl) canvasEl.focus();
+        });
+
+        // 3D card tilt effect removed for stable camera navigation.
+
+        // Start Initial loops
+        deployMission();
+        gameLoop(0);
+    </script>
+</body>
+</html>

@@ -1,0 +1,877 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Profile Settings - Game Hub</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Palette: Glass + Clay combination */
+            --bg-dark: #070913;
+            --glass-bg: rgba(17, 24, 39, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            
+            /* Claymorphic Vibrant Accents */
+            --clay-orange: #ff7b00;
+            --clay-purple: #8b5cf6;
+            --clay-teal: #14b8a6;
+            --clay-cyan: #06b6d4;
+            --clay-pink: #ec4899;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 100px;
+            padding-bottom: 40px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Floating glowing background shapes to illuminate glass backdrop blur */
+        .ambient-glows {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glow-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.15;
+            animation: floatGlow 15s infinite alternate ease-in-out;
+        }
+
+        .glow-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--clay-purple);
+            top: -100px;
+            left: -100px;
+        }
+
+        .glow-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--clay-teal);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-50px) scale(1.1); }
+        }
+
+        /* Glassmorphism Navigation Bar */
+        .navbar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.1rem 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-brand {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .nav-brand span {
+            background: linear-gradient(135deg, var(--clay-orange) 0%, var(--clay-pink) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.25s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--text-primary);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.25);
+        }
+
+        /* Glassmorphic Profile Card Container */
+        .profile-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            width: 90vw;
+            max-width: 800px;
+            overflow: hidden;
+            z-index: 5;
+            position: relative;
+        }
+
+        /* Profile Header Details */
+        .profile-header {
+            background: rgba(0, 0, 0, 0.15);
+            padding: 2.25rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        /* Claymorphic avatar border wrapper */
+        .avatar-container {
+            position: relative;
+            margin-right: 2rem;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 6px solid var(--clay-orange);
+            box-shadow: 
+                5px 5px 15px rgba(0, 0, 0, 0.4),
+                inset -3px -3px 6px rgba(0, 0, 0, 0.4),
+                inset 3px 3px 6px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Claymorphic Edit Avatar Camera badge */
+        .avatar-edit {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: var(--clay-orange);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 
+                0 4px 10px rgba(0, 0, 0, 0.3),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.4),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.3);
+            color: #0b0c10;
+            transition: all 0.2s ease;
+        }
+
+        .avatar-edit:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.5px;
+        }
+
+        /* Clay level pill badge */
+        .profile-level {
+            display: inline-block;
+            background: var(--clay-purple);
+            color: #ffffff;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            box-shadow: 
+                0 4px 10px rgba(139, 92, 246, 0.15),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.4),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Glassmorphic Tabs selection bar */
+        .profile-content {
+            display: flex;
+            flex-direction: column;
+            padding: 2.25rem;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--glass-border);
+            gap: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.85rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            position: relative;
+            transition: all 0.25s ease;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .tab.active {
+            color: var(--text-primary);
+        }
+
+        /* Active claymorphic pill marker */
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--clay-orange);
+            border-radius: 3px 3px 0 0;
+            box-shadow: 0 -2px 6px var(--clay-orange);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Glass Form Control Layouts */
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Glassmorphic inputs */
+        .form-control {
+            width: 100%;
+            padding: 0.85rem 1.15rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: all 0.25s ease;
+        }
+
+        .form-control:focus {
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
+        }
+
+        /* Custom volume slider styled as Claymorphic widget */
+        input[type="range"].form-control {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            height: 12px;
+            border-radius: 6px;
+            outline: none;
+            padding: 0;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"].form-control::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--clay-orange);
+            cursor: pointer;
+            box-shadow: 
+                0 4px 8px rgba(0, 0, 0, 0.4),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.4),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.3);
+            transition: transform 0.1s ease;
+        }
+
+        input[type="range"].form-control::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .select-wrapper {
+            position: relative;
+        }
+
+        /* Inset check buttons */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            margin-right: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox:checked {
+            background: var(--clay-orange);
+            border-color: var(--clay-orange);
+            box-shadow: 
+                0 4px 10px rgba(255, 123, 0, 0.25),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.4),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.35);
+        }
+
+        .checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #0b0c10;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .checkbox-label {
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Buttons Layout */
+        .btn {
+            padding: 0.85rem 1.75rem;
+            border-radius: 18px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: var(--clay-orange);
+            color: #0b0c10;
+            box-shadow: 
+                0 4px 12px rgba(255, 123, 0, 0.15),
+                inset -3px -3px 6px rgba(0, 0, 0, 0.35),
+                inset 3px 3px 6px rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #ff8c1a;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 15px rgba(255, 123, 0, 0.25),
+                inset -3px -3px 6px rgba(0, 0, 0, 0.35),
+                inset 3px 3px 6px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+            box-shadow: 
+                0 2px 5px rgba(0,0,0,0.5),
+                inset 2px 2px 5px rgba(0,0,0,0.4);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            margin-right: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        /* Achievements Tab Panel styles */
+        .progress-container {
+            margin-top: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--clay-teal);
+            border-radius: 6px;
+            width: 65%;
+            position: relative;
+            box-shadow: 
+                inset -2px -2px 4px rgba(0, 0, 0, 0.3),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.25);
+        }
+
+        /* Stat Grid Glass display cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.25s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--clay-orange);
+            text-shadow: 0 4px 10px rgba(255, 123, 0, 0.15);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Badges list section */
+        .badge-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .badge {
+            background: var(--clay-purple);
+            color: #ffffff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            box-shadow: 
+                0 4px 10px rgba(139, 92, 246, 0.15),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.4),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        .badge i {
+            margin-right: 6px;
+            color: #ffd43b;
+        }
+
+        /* Glassmorphic message notifications banner */
+        .message-banner {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #a7f3d0;
+            padding: 1rem 1.25rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .avatar-container {
+                margin-right: 0;
+                margin-bottom: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                padding-bottom: 8px;
+            }
+
+            .tab {
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background glow objects -->
+    <div class="ambient-glows">
+        <div class="glow-circle glow-1"></div>
+        <div class="glow-circle glow-2"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="nav-brand">
+                <i class="fa-solid fa-shapes"></i> GAME<span>HUB</span>
+            </a>
+            <div class="nav-menu">
+                <a href="{% url 'dashboard' %}" class="nav-link">Dashboard</a>
+                <a href="{% url 'profile' %}" class="nav-link active">Profile</a>
+                <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Center Card container -->
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="avatar-container">
+                <img src="{{ user.profile_picture.url }}" alt="Avatar" class="avatar" id="avatarImage">
+                <div class="avatar-edit" onclick="document.getElementById('avatarUpload').click()">
+                    <i class="fa-solid fa-camera"></i>
+                </div>
+            </div>
+            <div class="profile-info">
+                <h1 class="profile-name" id="profileName">{{ user.username }}</h1>
+                <span class="profile-level">Level 15</span>
+            </div>
+        </div>
+        
+        <div class="profile-content">
+            <!-- Alert notifications -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message-banner">
+                        <i class="fa-solid fa-circle-check" style="color: var(--success);"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="tabs">
+                <div class="tab active" data-tab="profile">Profile</div>
+                <div class="tab" data-tab="gameplay">Gameplay</div>
+                <div class="tab" data-tab="privacy">Privacy</div>
+                <div class="tab" data-tab="achievements">Achievements</div>
+            </div>
+            
+            <!-- Profile settings tab -->
+            <div class="tab-content active" id="profile-tab">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% for field in profile_form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <ul class="errorlist">
+                                {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="form-actions">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" name="save_profile" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Gameplay settings tab -->
+            <div class="tab-content" id="gameplay-tab">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in gameplay_form %}
+                        <div class="form-group">
+                             {% if field.field.widget.input_type == 'checkbox' %}
+                                <div class="checkbox-group">
+                                    {{ field }}
+                                    <label for="{{ field.id_for_label }}" class="checkbox-label">{{ field.label }}</label>
+                                </div>
+                            {% else %}
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                            {% endif %}
+                            {% if field.errors %}
+                            <ul class="errorlist">
+                                {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="form-actions">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" name="save_gameplay" class="btn btn-primary">Save Settings</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Privacy settings tab -->
+            <div class="tab-content" id="privacy-tab">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in privacy_form %}
+                        <div class="form-group">
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                                <div class="checkbox-group">
+                                    {{ field }}
+                                    <label for="{{ field.id_for_label }}" class="checkbox-label">{{ field.label }}</label>
+                                </div>
+                            {% else %}
+                                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                                {{ field }}
+                            {% endif %}
+                            {% if field.errors %}
+                            <ul class="errorlist">
+                                {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="form-actions">
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" name="save_privacy" class="btn btn-primary">Save Privacy Settings</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Achievements list tab -->
+            <div class="tab-content" id="achievements-tab">
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span>Game Completion</span>
+                        <span>65%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">42</div>
+                        <div class="stat-label">Achievements</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">Platinum</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">127h</div>
+                        <div class="stat-label">Play Time</div>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 24px 0 16px; color: var(--clay-orange); font-size: 1.15rem; font-weight: 800;">Recent Unlocks</h3>
+                
+                <div class="badge-container">
+                    <div class="badge">
+                        <i>★</i> First Blood
+                    </div>
+                    <div class="badge">
+                        <i>★</i> Explorer
+                    </div>
+                    <div class="badge">
+                        <i>★</i> Collector
+                    </div>
+                    <div class="badge">
+                        <i>★</i> Speed Runner
+                    </div>
+                    <div class="badge">
+                        <i>★</i> Completionist
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script integrations -->
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // Avatar upload preview
+        const avatarUpload = document.getElementById('avatarUpload');
+        if (avatarUpload) {
+            avatarUpload.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        document.getElementById('avatarImage').src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        // Volume range track color updates dynamically
+        const volumeSlider = document.getElementById('id_master_volume');
+        if (volumeSlider) {
+            const updateSliderBackground = function(slider) {
+                const value = (slider.value - slider.min) / (slider.max - slider.min) * 100;
+                slider.style.background = `linear-gradient(to right, var(--clay-orange) 0%, var(--clay-orange) ${value}%, rgba(255, 255, 255, 0.08) ${value}%, rgba(255, 255, 255, 0.08) 100%)`;
+            };
+
+            volumeSlider.addEventListener('input', function() {
+                updateSliderBackground(this);
+            });
+            // Initial call
+            updateSliderBackground(volumeSlider);
+        }
+    </script>
+</body>
+</html>

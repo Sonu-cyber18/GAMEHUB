@@ -1,0 +1,862 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Dashboard - GameHub</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Orbitron:wght@800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* Palette: Glass + Clay combination */
+            --bg-dark: #070913;
+            --glass-bg: rgba(17, 24, 39, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            
+            /* Claymorphic Vibrant Accents */
+            --clay-orange: #ff7b00;
+            --clay-purple: #8b5cf6;
+            --clay-teal: #14b8a6;
+            --clay-cyan: #06b6d4;
+            --clay-pink: #ec4899;
+            --clay-blue: #3b82f6;
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient glowing background shapes */
+        .ambient-glows {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glow-circle {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(140px);
+            opacity: 0.12;
+            animation: floatGlow 15s infinite alternate ease-in-out;
+        }
+
+        .glow-1 {
+            width: 500px;
+            height: 500px;
+            background: var(--clay-purple);
+            top: -100px;
+            left: -100px;
+        }
+
+        .glow-2 {
+            width: 600px;
+            height: 600px;
+            background: var(--clay-teal);
+            bottom: -150px;
+            right: -100px;
+            animation-delay: -5s;
+        }
+
+        @keyframes floatGlow {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-50px) scale(1.15); }
+        }
+
+        /* Glassmorphism Navigation Bar */
+        .navbar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.1rem 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, var(--clay-orange) 0%, var(--clay-pink) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.25s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--text-main);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.25);
+        }
+
+        /* Main Dashboard Container */
+        .dashboard-container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+            flex-grow: 1;
+            z-index: 5;
+            position: relative;
+        }
+
+        .dashboard-header {
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 0.35rem;
+        }
+
+        .dashboard-header h1 span {
+            background: linear-gradient(135deg, var(--clay-orange) 0%, var(--clay-purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .dashboard-header p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+        }
+
+        /* Section Titles */
+        .section-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            color: var(--text-main);
+        }
+
+        /* 1. Featured Games Carousel styles */
+        .carousel-section {
+            margin-bottom: 4.5rem;
+        }
+
+        .carousel-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .carousel-track-wrapper {
+            overflow: hidden;
+            width: 100%;
+            border-radius: 32px;
+            padding: 10px 0;
+        }
+
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            width: 300%; /* 3 slides */
+        }
+
+        .carousel-slide {
+            width: 33.333%;
+            padding: 0 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .featured-card {
+            width: 100%;
+            max-width: 820px;
+            min-height: 280px;
+            border-radius: 32px;
+            padding: 2.5rem;
+            text-decoration: none;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 2.5rem;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        @media (max-width: 768px) {
+            .featured-card {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+                padding: 1.75rem;
+                min-height: auto;
+            }
+        }
+
+        /* Claymorphic color variables */
+        .card-orange {
+            background: var(--clay-orange);
+            color: #0b0c10;
+            box-shadow: 
+                0 15px 35px rgba(255, 123, 0, 0.2),
+                inset -6px -6px 12px rgba(0, 0, 0, 0.4),
+                inset 6px 6px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        .card-teal {
+            background: var(--clay-teal);
+            color: #0b0c10;
+            box-shadow: 
+                0 15px 35px rgba(20, 184, 166, 0.2),
+                inset -6px -6px 12px rgba(0, 0, 0, 0.4),
+                inset 6px 6px 12px rgba(255, 255, 255, 0.3);
+        }
+
+        .card-purple {
+            background: var(--clay-purple);
+            color: #ffffff;
+            box-shadow: 
+                0 15px 35px rgba(139, 92, 246, 0.25),
+                inset -6px -6px 12px rgba(0, 0, 0, 0.45),
+                inset 6px 6px 12px rgba(255, 255, 255, 0.2);
+        }
+
+        .featured-card:hover {
+            transform: translateY(-8px) scale(1.015);
+        }
+
+        .featured-card-top {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .featured-badge {
+            background: rgba(0, 0, 0, 0.12);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .featured-glow-icon {
+            font-size: 4.5rem;
+            animation: floatIcon 3.5s infinite alternate ease-in-out;
+        }
+
+        @keyframes floatIcon {
+            0% { transform: translateY(0) rotate(-3deg); }
+            100% { transform: translateY(-10px) rotate(3deg); }
+        }
+
+        .featured-card-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            text-align: left;
+        }
+
+        .featured-card-content h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .featured-card-content p {
+            font-size: 1rem;
+            opacity: 0.85;
+            line-height: 1.5;
+            max-width: 480px;
+        }
+
+        .featured-play-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            width: fit-content;
+            transition: all 0.2s ease;
+        }
+
+        .featured-card:hover .featured-play-btn {
+            background: rgba(0, 0, 0, 0.25);
+            transform: scale(1.03);
+        }
+
+        /* Arrows */
+        .carousel-arrow {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .carousel-arrow:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: scale(1.1);
+        }
+
+        /* Indicators */
+        .carousel-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .indicator-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--glass-border);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .indicator-dot.active {
+            background: var(--clay-orange);
+            width: 24px;
+            border-radius: 10px;
+            box-shadow: 0 0 8px var(--clay-orange);
+        }
+
+        /* 2. Interlapping Claymorphic Grid styles */
+        .interlapping-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 2.5rem;
+            padding: 1rem 0;
+        }
+
+        .interlapping-card-wrapper {
+            position: relative;
+            transition: z-index 0.3s;
+        }
+
+        /* Staggered rotating layout to interlap cards visual */
+        .interlapping-card-wrapper:nth-child(even) .interlapping-card {
+            transform: rotate(1.5deg) translateY(5px);
+        }
+
+        .interlapping-card-wrapper:nth-child(odd) .interlapping-card {
+            transform: rotate(-1.5deg) translateY(-5px);
+        }
+
+        .interlapping-card {
+            border-radius: 30px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 270px;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        /* Claymorphic card variables for different games */
+        .clay-card-orange {
+            background: var(--clay-orange);
+            color: #0b0c10;
+            box-shadow: 
+                5px 5px 15px rgba(0, 0, 0, 0.35),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.35),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.3);
+        }
+
+        .clay-card-teal {
+            background: var(--clay-teal);
+            color: #0b0c10;
+            box-shadow: 
+                5px 5px 15px rgba(0, 0, 0, 0.35),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.35),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.3);
+        }
+
+        .clay-card-purple {
+            background: var(--clay-purple);
+            color: #ffffff;
+            box-shadow: 
+                5px 5px 15px rgba(0, 0, 0, 0.35),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.45),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        .clay-card-pink {
+            background: var(--clay-pink);
+            color: #ffffff;
+            box-shadow: 
+                5px 5px 15px rgba(0, 0, 0, 0.35),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.45),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        .clay-card-blue {
+            background: var(--clay-blue);
+            color: #ffffff;
+            box-shadow: 
+                5px 5px 15px rgba(0, 0, 0, 0.35),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.45),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Overlap logic on Hover: straightens, scales, gains shadow glow */
+        .interlapping-card-wrapper:hover {
+            z-index: 10;
+        }
+
+        .interlapping-card-wrapper:hover .interlapping-card {
+            transform: rotate(0deg) translateY(-12px) scale(1.05);
+            box-shadow: 
+                0 25px 40px rgba(0, 0, 0, 0.5),
+                inset -4px -4px 8px rgba(0, 0, 0, 0.3),
+                inset 4px 4px 8px rgba(255, 255, 255, 0.35);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Inset small badge */
+        .badge-inset {
+            background: rgba(0, 0, 0, 0.08);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .icon-floating {
+            font-size: 2.2rem;
+            animation: floatSmallIcon 3s infinite alternate ease-in-out;
+        }
+
+        @keyframes floatSmallIcon {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-5px); }
+        }
+
+        .interlapping-card h3 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.3px;
+        }
+
+        .interlapping-card p {
+            font-size: 0.88rem;
+            opacity: 0.85;
+            line-height: 1.45;
+            flex-grow: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-launch {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.12);
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.82rem;
+            width: fit-content;
+            transition: all 0.2s ease;
+        }
+
+        .interlapping-card:hover .btn-launch {
+            background: rgba(0, 0, 0, 0.22);
+            transform: scale(1.02);
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(7, 9, 19, 0.8);
+            border-top: 1px solid var(--glass-border);
+            padding: 2rem;
+            text-align: center;
+            margin-top: 5rem;
+            position: relative;
+            z-index: 5;
+        }
+
+        footer p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .interlapping-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .interlapping-card-wrapper:nth-child(any) .interlapping-card {
+                transform: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background glows -->
+    <div class="ambient-glows">
+        <div class="glow-circle glow-1"></div>
+        <div class="glow-circle glow-2"></div>
+    </div>
+    
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fa-solid fa-shapes"></i> GAME<span>HUB</span>
+            </a>
+            <div class="nav-links">
+                <a href="{% url 'dashboard' %}" class="active">Dashboard</a>
+                <a href="{% url 'profile' %}">Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Welcome back, <span>{{ request.user.username }}</span></h1>
+            <p>Select a challenge to test your skills</p>
+        </header>
+
+        <!-- 1. Featured Games Carousel -->
+        <div class="carousel-section">
+            <h2 class="section-title"><i class="fa-solid fa-star" style="color: var(--clay-orange);"></i> Featured Challenges</h2>
+            <div class="carousel-container">
+                <button class="carousel-arrow prev-arrow" id="prev-slide"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="carousel-track-wrapper">
+                    <div class="carousel-track" id="carousel-track">
+                        <!-- Slide 1: Hill Climber -->
+                        <div class="carousel-slide">
+                            <a class="featured-card card-orange" href="{% url 'hill-climber' %}">
+                                <div class="featured-card-top">
+                                    <div class="featured-badge"><i class="fa-solid fa-mountain"></i> Physics</div>
+                                    <div class="featured-glow-icon">🚗</div>
+                                </div>
+                                <div class="featured-card-content">
+                                    <h3>Hill Climber</h3>
+                                    <p>Navigate squishy clay terrains, manage fuel levels, and tilt your jeep to survive!</p>
+                                    <span class="featured-play-btn">Launch Jeep <i class="fa-solid fa-rocket"></i></span>
+                                </div>
+                            </a>
+                        </div>
+                        <!-- Slide 2: Pacman -->
+                        <div class="carousel-slide">
+                            <a class="featured-card card-teal" href="{% url 'pacman-game' %}">
+                                <div class="featured-card-top">
+                                    <div class="featured-badge"><i class="fa-solid fa-ghost"></i> Arcade</div>
+                                    <div class="featured-glow-icon">👾</div>
+                                </div>
+                                <div class="featured-card-content">
+                                    <h3>Pacman</h3>
+                                    <p>Avoid ghost patrols while navigating maze pathways for pellets in a skeuomorphic cabinet shell.</p>
+                                    <span class="featured-play-btn">Chomp Now <i class="fa-solid fa-rocket"></i></span>
+                                </div>
+                            </a>
+                        </div>
+                        <!-- Slide 3: Ludo -->
+                        <div class="carousel-slide">
+                            <a class="featured-card card-purple" href="{% url 'ludo-game' %}">
+                                <div class="featured-card-top">
+                                    <div class="featured-badge"><i class="fa-solid fa-dice"></i> Board</div>
+                                    <div class="featured-glow-icon">🎲</div>
+                                </div>
+                                <div class="featured-card-content">
+                                    <h3>Ludo Champion</h3>
+                                    <p>Roll dice, capture opponent tokens, and race to the center home spot in 2-player, 4-player, or AI modes!</p>
+                                    <span class="featured-play-btn">Roll Dice <i class="fa-solid fa-rocket"></i></span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-arrow next-arrow" id="next-slide"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <!-- Indicators -->
+            <div class="carousel-indicators">
+                <span class="indicator-dot active" data-slide="0"></span>
+                <span class="indicator-dot" data-slide="1"></span>
+                <span class="indicator-dot" data-slide="2"></span>
+            </div>
+        </div>
+
+        <!-- 2. Staggered Interlapping Grid -->
+        <h2 class="section-title"><i class="fa-solid fa-gamepad" style="color: var(--clay-teal);"></i> All Challenges</h2>
+        <div class="interlapping-grid">
+            <!-- Snake Game -->
+            <div class="interlapping-card-wrapper">
+                <a class="interlapping-card clay-card-orange" href="{% url 'snake-game' %}">
+                    <div class="card-header">
+                        <span class="badge-inset">Arcade</span>
+                        <div class="icon-floating">🐍</div>
+                    </div>
+                    <h3>Snake Game</h3>
+                    <p>Classic snake logic polished with clean, ultra-responsive grid movements.</p>
+                    <span class="btn-launch">Play Game <i class="fa-solid fa-play"></i></span>
+                </a>
+            </div>
+
+            <!-- Chess -->
+            <div class="interlapping-card-wrapper">
+                <a class="interlapping-card clay-card-teal" href="{% url 'chess-game' %}">
+                    <div class="card-header">
+                        <span class="badge-inset">Strategy</span>
+                        <div class="icon-floating">👑</div>
+                    </div>
+                    <h3>Chess</h3>
+                    <p>Test your strategic foresight in a beautiful, minimalist battle of wits.</p>
+                    <span class="btn-launch">Play Game <i class="fa-solid fa-play"></i></span>
+                </a>
+            </div>
+
+            <!-- Puzzle -->
+            <div class="interlapping-card-wrapper">
+                <a class="interlapping-card clay-card-purple" href="{% url 'puzzle-game' %}">
+                    <div class="card-header">
+                        <span class="badge-inset">Mind</span>
+                        <div class="icon-floating">🧩</div>
+                    </div>
+                    <h3>Puzzle</h3>
+                    <p>Slide tile patterns systematically to solve analytical puzzles.</p>
+                    <span class="btn-launch">Play Game <i class="fa-solid fa-play"></i></span>
+                </a>
+            </div>
+
+            <!-- Python Learning -->
+            <div class="interlapping-card-wrapper">
+                <a class="interlapping-card clay-card-pink" href="{% url 'python-learning-game' %}">
+                    <div class="card-header">
+                        <span class="badge-inset">Education</span>
+                        <div class="icon-floating">🐍💻</div>
+                    </div>
+                    <h3>Python Adventure</h3>
+                    <p>Advance through programmatic trials by executing Python syntax challenges.</p>
+                    <span class="btn-launch">Play Game <i class="fa-solid fa-play"></i></span>
+                </a>
+            </div>
+
+            <!-- Memory Game -->
+            <div class="interlapping-card-wrapper">
+                <a class="interlapping-card clay-card-blue" href="{% url 'memory-game' %}">
+                    <div class="card-header">
+                        <span class="badge-inset">Mind</span>
+                        <div class="icon-floating">🧠</div>
+                    </div>
+                    <h3>Memory Match</h3>
+                    <p>Train your recall memory and speed by matching card patterns.</p>
+                    <span class="btn-launch">Play Game <i class="fa-solid fa-play"></i></span>
+                </a>
+            </div>
+
+            <!-- Stickman Hitman -->
+            <div class="interlapping-card-wrapper">
+                <a class="interlapping-card clay-card-orange" href="{% url 'stickman-hitman' %}">
+                    <div class="card-header">
+                        <span class="badge-inset">Stealth Strategy</span>
+                        <div class="icon-floating">🎯</div>
+                    </div>
+                    <h3>Stickman Hitman</h3>
+                    <p>Infiltrate target zones, plan your execution, and eliminate targets in a 3D open world.</p>
+                    <span class="btn-launch">Play Game <i class="fa-solid fa-play"></i></span>
+                </a>
+            </div>
+
+            <!-- Endless Runner -->
+            <div class="interlapping-card-wrapper">
+                <a class="interlapping-card clay-card-teal" href="{% url 'endless-runner' %}">
+                    <div class="card-header">
+                        <span class="badge-inset">Runner</span>
+                        <div class="icon-floating">🏃‍♂️</div>
+                    </div>
+                    <h3>Endless Runner</h3>
+                    <p>Dash across parallax landscapes, jump hazards, and test split-second reflexes.</p>
+                    <span class="btn-launch">Play Game <i class="fa-solid fa-play"></i></span>
+                </a>
+            </div>
+
+            <!-- Flappy Bird -->
+            <div class="interlapping-card-wrapper">
+                <a class="interlapping-card clay-card-purple" href="{% url 'flappy-bird' %}">
+                    <div class="card-header">
+                        <span class="badge-inset">Arcade</span>
+                        <div class="icon-floating">🐦</div>
+                    </div>
+                    <h3>Flappy Bird</h3>
+                    <p>Control altitude and fly through narrow columnar obstacles.</p>
+                    <span class="btn-launch">Play Game <i class="fa-solid fa-play"></i></span>
+                </a>
+            </div>
+
+            <!-- Indian Theft Auto (ITF) -->
+            <div class="interlapping-card-wrapper">
+                <a class="interlapping-card clay-card-pink" href="{% url 'itf' %}">
+                    <div class="card-header">
+                        <span class="badge-inset">3D Open World</span>
+                        <div class="icon-floating">🛺</div>
+                    </div>
+                    <h3>Indian Theft Auto</h3>
+                    <p>Drive auto-rickshaws, complete desi missions, and escape the police in a 3D city.</p>
+                    <span class="btn-launch">Play Game <i class="fa-solid fa-play"></i></span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; {% now "Y" %} GameHub. All rights reserved.</p>
+    </footer>
+
+    <!-- Carousel sliding logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const track = document.getElementById('carousel-track');
+            const prevButton = document.getElementById('prev-slide');
+            const nextButton = document.getElementById('next-slide');
+            const dots = document.querySelectorAll('.indicator-dot');
+            
+            let currentSlide = 0;
+            const maxSlides = 3;
+
+            const updateCarousel = (index) => {
+                currentSlide = index;
+                // Move track
+                track.style.transform = `translateX(-${currentSlide * 33.333}%)`;
+                
+                // Update active indicator dot
+                dots.forEach(dot => dot.classList.remove('active'));
+                dots[currentSlide].classList.add('active');
+            };
+
+            prevButton.addEventListener('click', () => {
+                let index = currentSlide - 1;
+                if (index < 0) index = maxSlides - 1;
+                updateCarousel(index);
+            });
+
+            nextButton.addEventListener('click', () => {
+                let index = currentSlide + 1;
+                if (index >= maxSlides) index = 0;
+                updateCarousel(index);
+            });
+
+            dots.forEach(dot => {
+                dot.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.getAttribute('data-slide'));
+                    updateCarousel(index);
+                });
+            });
+
+            // Auto slide every 8 seconds
+            let autoSlide = setInterval(() => {
+                let index = currentSlide + 1;
+                if (index >= maxSlides) index = 0;
+                updateCarousel(index);
+            }, 8000);
+
+            // Reset auto slide timer on manual clicks
+            const resetAutoSlide = () => {
+                clearInterval(autoSlide);
+                autoSlide = setInterval(() => {
+                    let index = currentSlide + 1;
+                    if (index >= maxSlides) index = 0;
+                    updateCarousel(index);
+                }, 8000);
+            };
+
+            prevButton.addEventListener('click', resetAutoSlide);
+            nextButton.addEventListener('click', resetAutoSlide);
+            dots.forEach(dot => dot.addEventListener('click', resetAutoSlide));
+        });
+    </script>
+</body>
+</html>
