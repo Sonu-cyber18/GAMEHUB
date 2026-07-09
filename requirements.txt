@@ -1,4 +1,4 @@
 # Core framework dependency
 Django>=5.1.3
 gunicorn
-Pillow==11.x.x
+Pillow==12.0.0
