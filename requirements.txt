@@ -1,2 +1,3 @@
 # Core framework dependency
 Django>=5.1.3
+gunicorn
